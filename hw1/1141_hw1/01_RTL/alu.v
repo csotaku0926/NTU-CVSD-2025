@@ -42,7 +42,7 @@ module alu #(
                 // multiply
                 multi_res_w = multi_func(i_data_a, i_data_b); 
                 // accumulate & saturation
-                data_acc_w = multi_res_w; //add_func_ACC(data_acc_r, multi_res_w);
+                data_acc_w = add_func_ACC(data_acc_r, multi_res_w);
                 // round to 16-bit
                 o_data_w = round2DATA_W(data_acc_w);
             end
@@ -57,6 +57,7 @@ module alu #(
             o_out_valid_r <= 1'b0;
             o_busy_r <= 1'b1;
             data_acc_r <= 0;
+            data_acc_w <= 0;
         end
         else begin
             // start output data
