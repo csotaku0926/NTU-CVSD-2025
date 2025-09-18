@@ -26,6 +26,8 @@ module alu #(
     reg              o_out_valid_r, o_out_valid_w;
     reg              o_busy_r, o_busy_w;
     reg [ACC_W-1:0]  data_acc_r, data_acc_w, multi_res_w;
+    reg       [4:0]  cycle_cnt_r;
+    reg              mat_collecting;
 
     // continous assignment
     assign o_out_valid = o_out_valid_r;
@@ -40,12 +42,22 @@ module alu #(
             // cannot use function to wrap multiplication due to acc
             4'b0010: begin
                 // multiply
-                multi_res_w = multi_func(i_data_a, i_data_b); 
+                multi_res_w = $signed(i_data_a) * $signed(i_data_b); //multi_func(i_data_a, i_data_b); 
                 // accumulate & saturation
-                data_acc_w = add_func_ACC(data_acc_r, multi_res_w);
+                data_acc_w = data_acc_r + multi_res_w; //add_func_ACC(data_acc_r, multi_res_w);
                 // round to 16-bit
                 o_data_w = round2DATA_W(data_acc_w);
+            end    
+            4'b0100: o_data_w = gray_code_func(i_data_a);
+            4'b0101: o_data_w = LRCW_func(i_data_a, i_data_b);
+            4'b0110: o_data_w = rr_func(i_data_a, i_data_b);
+            4'b0111: o_data_w = CLZ_func(i_data_a);
+            4'b1000: o_data_w = RevM4_func(i_data_a, i_data_b);
+            // wait for 8 cycles
+            4'b1001: begin
+                
             end
+            default: o_data_w = 0;
         endcase
         o_busy_w = 1'b0;
     end
@@ -58,13 +70,19 @@ module alu #(
             o_busy_r <= 1'b1;
             data_acc_r <= 0;
             data_acc_w <= 0;
+            cycle_cnt_r <= 0;
         end
         else begin
             // start output data
             o_data_r <= o_data_w;
-            o_out_valid_r <= i_in_valid;
             o_busy_r <= o_busy_w;
             data_acc_r <= data_acc_w;
+            // for inst #1001
+            if (mat_collecting && i_in_valid) begin
+                cycle_cnt_r <= cycle_cnt_r + 1; // count cycle
+            end 
+            else
+                o_out_valid_r <= i_in_valid;
         end
     end
 
@@ -89,64 +107,113 @@ module alu #(
         end
     endfunction
 
-    function [ACC_W-1:0] add_func_ACC;
-        input [ACC_W-1:0] i_data_a;
-        input [ACC_W-1:0] i_data_b;
-        reg   [ACC_W-1:0] tmp;
-
-        begin
-            tmp = i_data_a + i_data_b;
-            // overflow if a, b > 0 but tmp < 0 (vice versa)
-            if (
-                (i_data_a[ACC_W-1] != i_data_b[ACC_W-1]) ||
-                (i_data_a[ACC_W-1] == tmp[ACC_W-1])
-            ) 
-            begin
-                add_func_ACC = tmp;    
-            end
-            else if (i_data_a[ACC_W-1] == 1'b1) add_func_ACC = {1'b1, {ACC_W-1{1'b0}} }; // 100..0
-            else add_func_ACC = {1'b0, {ACC_W-1{1'b1}} }; // 011..1
-        end
-    endfunction
-
-
-    // signed multiplication
-    function [ACC_W-1:0] multi_func;
-        input [DATA_W-1:0] i_data_a;
-        input [DATA_W-1:0] i_data_b;
-        reg                  sign_r;
-        reg   [ACC_W-1:0]       tmp;
-
-        begin
-            // make both data unsigned
-            sign_r = 0;
-            if (i_data_a[DATA_W-1] == 1'b1) begin
-                i_data_a = ~(i_data_a) + 1;
-                sign_r = !sign_r;
-            end
-            if (i_data_b[DATA_W-1] == 1'b1) begin
-                i_data_b = ~(i_data_b) + 1;
-                sign_r = !sign_r;
-            end
-
-            tmp = i_data_a * i_data_b; // assume it's 36 bit?
-            multi_func = (sign_r) ? ~(tmp) + 1 : tmp;
-        end
-    endfunction
 
     function [DATA_W-1:0] round2DATA_W;
         input [ACC_W-1:0]  i_data;
-        reg   [DATA_W-1:0] tmp;    
+        reg   [DATA_W-1:0] tmp;  
 
         begin
             // if excessive integers are not 0, then overflow
+            // 000...01_1111_ (max)
+            // 111...10_0000_ (min)
             // round to nearest
-            tmp = i_data[ACC_W - (ACC_INT_W - INT_W):FRAC_W]; // 25:10
-            round2DATA_W = tmp + (tmp[FRAC_W-1] ? 1 : 0); 
-            // if(i_data[ACC_W-1 : int_start] == 0) begin
-            //     // clamp excessive fractions
+            tmp = i_data[ACC_W - 1 - (ACC_INT_W - INT_W):FRAC_W]; // 25:10
+            // if tmp == 011..1 and round up will overflow
+            round2DATA_W = tmp + ((i_data[FRAC_W-1] == 1'b1) ? 1 : 0);
+            if (tmp[DATA_W-1] == 1'b0 && round2DATA_W[DATA_W-1] == 1'b1) round2DATA_W = tmp; 
+       
+            // if (i_data[ACC_W-1:ACC_W - (ACC_INT_W - INT_W)] == 10'b0 || 
+            //     i_data[ACC_W-1:ACC_W - (ACC_INT_W - INT_W)] == 10'b1) // {(ACC_INT_W - INT_W){1'b0}}
+            // begin
             // end
+            // else if (i_data[ACC_W-1] == 1'b0) begin
+            //     round2DATA_W = {1'b0, {DATA_W-1{1'b1}} }; // 011..1
+            // end
+            // else begin
+            //     round2DATA_W = {1'b1, {DATA_W-1{1'b0}} }; // 100..0
+            // end
+            
 
+        end
+    endfunction
+
+    function [DATA_W-1:0] gray_code_func;
+        input [DATA_W-1:0] i_data;
+        reg                   tmp;
+        integer                 i;
+
+        begin
+            tmp = 1'b0;
+            for (i=DATA_W-1; i>=0; i=i-1) begin
+                gray_code_func[i] = i_data[i] ^ tmp;
+                tmp = i_data[i];
+            end
+        end
+    endfunction
+
+    function [DATA_W-1:0] LRCW_func;
+        input [DATA_W-1:0] i_data_a;
+        input [DATA_W-1:0] i_data_b;
+        reg                     tmp; 
+        integer                   i;
+
+        begin
+            // dumb way to do popcnt
+            for (i=DATA_W-1; i>=0; i=i-1) begin // loop iter must be pre-determined!
+                if (i_data_a[i]) begin
+                    // complement-on-wrap
+                    tmp = i_data_b[DATA_W-1];
+                    i_data_b = i_data_b << 1;
+                    i_data_b[0] = ~tmp;
+                end
+            end
+            LRCW_func = i_data_b;
+        end
+    endfunction
+
+    // right rotation
+    function [DATA_W-1:0] rr_func;
+        input [DATA_W-1:0] i_data_a; // original
+        input [DATA_W-1:0] i_data_b; // shift amount
+
+        begin
+            rr_func = (i_data_a >> i_data_b) | (i_data_a << (DATA_W - i_data_b));
+        end
+    endfunction
+
+    // count leading zero
+    function [DATA_W-1:0] CLZ_func;
+        input [DATA_W-1:0] i_data;
+        integer                 i;
+        reg                  flag;
+
+        begin
+            CLZ_func = 0;
+            flag = 1;
+
+            for (i=DATA_W-1; i>=0; i=i-1) begin
+                if (!i_data[i] && flag) CLZ_func = CLZ_func + 1;
+                else flag = 0;
+            end
+        end
+    endfunction
+
+    // reverse match 4
+    function [DATA_W-1:0] RevM4_func;
+        input [DATA_W-1:0] i_data_a;
+        input [DATA_W-1:0] i_data_b;
+        integer                 idx;
+        reg   [DATA_W-1:0]      mask;
+
+        begin
+            mask = 5'b01111;
+            RevM4_func = 0;
+            for (idx=DATA_W-4; idx>=0; idx=idx-1) begin
+                // Verilog does not allow variable width, which sucks :(
+                // be careful that integer is signed by default 
+                if (((i_data_a >> idx) & mask) == ((i_data_b >> (12 - idx)) & mask) ) 
+                    RevM4_func[idx] = 1; 
+            end
         end
     endfunction
 
