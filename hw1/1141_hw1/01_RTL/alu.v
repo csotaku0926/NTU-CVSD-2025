@@ -26,8 +26,11 @@ module alu #(
     reg              o_out_valid_r, o_out_valid_w;
     reg              o_busy_r, o_busy_w;
     reg [ACC_W-1:0]  data_acc_r, data_acc_w, multi_res_w;
-    reg       [4:0]  cycle_cnt_r;
+    reg     [5-1:0]  cycle_cnt_r;
     reg              mat_collecting;
+    reg     [DATA_W-1:0] row_mem [0:7];
+
+    integer i;
 
     // continous assignment
     assign o_out_valid = o_out_valid_r;
@@ -46,7 +49,19 @@ module alu #(
                 // accumulate & saturation
                 data_acc_w = data_acc_r + multi_res_w; //add_func_ACC(data_acc_r, multi_res_w);
                 // round to 16-bit
-                o_data_w = round2DATA_W(data_acc_w);
+                o_data_w = round2DATA_W(multi_res_w);
+                // saturation
+                if (data_acc_r[ACC_W-1] == 1'b0 && 
+                    multi_res_w[ACC_W-1] == 1'b0 &&
+                    data_acc_w[ACC_W-1] == 1'b1) begin
+                        data_acc_w = {1'b0, {ACC_W-1{1'b1}} }; // 011..1
+                    end
+                else if (data_acc_r[ACC_W-1] == 1'b1 && 
+                        multi_res_w[ACC_W-1] == 1'b1 &&
+                        data_acc_w[ACC_W-1] == 1'b0) begin
+                        data_acc_w = {1'b1, {ACC_W-1{1'b0}} }; // 100..0
+                    end 
+
             end    
             4'b0100: o_data_w = gray_code_func(i_data_a);
             4'b0101: o_data_w = LRCW_func(i_data_a, i_data_b);
@@ -55,7 +70,9 @@ module alu #(
             4'b1000: o_data_w = RevM4_func(i_data_a, i_data_b);
             // wait for 8 cycles
             4'b1001: begin
-                
+                // only enable collecting in the beginning!
+                if (cycle_cnt_r == 0) mat_collecting = 1'b1;
+                row_mem[cycle_cnt_r] = i_data_a;
             end
             default: o_data_w = 0;
         endcase
@@ -71,18 +88,35 @@ module alu #(
             data_acc_r <= 0;
             data_acc_w <= 0;
             cycle_cnt_r <= 0;
+            mat_collecting <= 0;
         end
         else begin
             // start output data
             o_data_r <= o_data_w;
             o_busy_r <= o_busy_w;
             data_acc_r <= data_acc_w;
-            // for inst #1001
+            o_out_valid_r <= i_in_valid;
+
+            // a valid collecting cycle
             if (mat_collecting && i_in_valid) begin
                 cycle_cnt_r <= cycle_cnt_r + 1; // count cycle
+                if (cycle_cnt_r >= 5'd7) begin
+                    mat_collecting <= 1'b0;
+                    o_busy_r <= 1'b1; // pause input sequence
+                end
+                o_out_valid_r <= 0;
             end 
-            else
-                o_out_valid_r <= i_in_valid;
+
+            if (!mat_collecting && cycle_cnt_r > 0) begin
+                // output mattrans result
+                for (i=0; i<8; i=i+1) begin
+                    o_data_r[15-2*i] <= row_mem[i][2*cycle_cnt_r-1];
+                    o_data_r[15-2*i-1] <= row_mem[i][2*cycle_cnt_r-2];
+                end
+                cycle_cnt_r <= cycle_cnt_r - 1;
+                o_out_valid_r <= 1'b1;
+                o_busy_r <= 1'b1;
+            end
         end
     end
 
@@ -108,6 +142,7 @@ module alu #(
     endfunction
 
 
+    // rounding
     function [DATA_W-1:0] round2DATA_W;
         input [ACC_W-1:0]  i_data;
         reg   [DATA_W-1:0] tmp;  
@@ -119,8 +154,7 @@ module alu #(
             // round to nearest
             tmp = i_data[ACC_W - 1 - (ACC_INT_W - INT_W):FRAC_W]; // 25:10
             // if tmp == 011..1 and round up will overflow
-            round2DATA_W = tmp + ((i_data[FRAC_W-1] == 1'b1) ? 1 : 0);
-            if (tmp[DATA_W-1] == 1'b0 && round2DATA_W[DATA_W-1] == 1'b1) round2DATA_W = tmp; 
+            round2DATA_W = i_data[ACC_W-1: 20]; //tmp + ((i_data[FRAC_W-1] == 1'b1) ? 1 : 0); // i_data[ACC_W-1: 20]; //
        
             // if (i_data[ACC_W-1:ACC_W - (ACC_INT_W - INT_W)] == 10'b0 || 
             //     i_data[ACC_W-1:ACC_W - (ACC_INT_W - INT_W)] == 10'b1) // {(ACC_INT_W - INT_W){1'b0}}
