@@ -18,7 +18,9 @@ module alu #(
     input  signed [DATA_W-1:0] i_data_b,
 
     output                     o_out_valid,
-    output        [DATA_W-1:0] o_data
+    output        [DATA_W-1:0] o_data,
+    output        [ACC_W-1:0]  o_tmp, // for tmp
+    output        [ACC_W-1:0]  o_multi // for tmp
 );
 
     // wires and regs
@@ -27,8 +29,10 @@ module alu #(
     reg              o_busy_r, o_busy_w;
     reg [ACC_W-1:0]  data_acc_r, data_acc_w, multi_res_w;
     reg     [5-1:0]  cycle_cnt_r;
-    reg              mat_collecting;
+    reg              mat_collecting, wait2acc;
     reg     [DATA_W-1:0] row_mem [0:7];
+
+    reg [ACC_W-1:0]  o_tmp_r, o_tmp_multi_r;
 
     integer i;
 
@@ -36,32 +40,29 @@ module alu #(
     assign o_out_valid = o_out_valid_r;
     assign o_data = o_data_r;
     assign o_busy = o_busy_r;
+    
+    assign o_tmp = o_tmp_r;
+    assign o_multi = o_tmp_multi_r;
 
     // procedual block
     always @ (*) begin
+        o_busy_w = 1'b0;
+        o_out_valid_w = 1'b1;
         case (i_inst)
             4'b0000: o_data_w = add_func(i_data_a, i_data_b);
             4'b0001: o_data_w = add_func(i_data_a, ~(i_data_b)+1);
             // cannot use function to wrap multiplication due to acc
             4'b0010: begin
                 // multiply
-                multi_res_w = $signed(i_data_a) * $signed(i_data_b); //multi_func(i_data_a, i_data_b); 
+                multi_res_w = multi_func(i_data_a, i_data_b); 
                 // accumulate & saturation
-                data_acc_w = data_acc_r + multi_res_w; //add_func_ACC(data_acc_r, multi_res_w);
+                // data_acc_w = add_func_ACC(data_acc_r, multi_res_w);
                 // round to 16-bit
-                o_data_w = round2DATA_W(multi_res_w);
-                // saturation
-                if (data_acc_r[ACC_W-1] == 1'b0 && 
-                    multi_res_w[ACC_W-1] == 1'b0 &&
-                    data_acc_w[ACC_W-1] == 1'b1) begin
-                        data_acc_w = {1'b0, {ACC_W-1{1'b1}} }; // 011..1
-                    end
-                else if (data_acc_r[ACC_W-1] == 1'b1 && 
-                        multi_res_w[ACC_W-1] == 1'b1 &&
-                        data_acc_w[ACC_W-1] == 1'b0) begin
-                        data_acc_w = {1'b1, {ACC_W-1{1'b0}} }; // 100..0
-                    end 
-
+                // input seq should wait until acc is ready
+                
+                o_busy_w = 1'b1;
+                o_out_valid_w = 1'b0;
+                wait2acc = 1'b1;
             end    
             4'b0100: o_data_w = gray_code_func(i_data_a);
             4'b0101: o_data_w = LRCW_func(i_data_a, i_data_b);
@@ -76,7 +77,6 @@ module alu #(
             end
             default: o_data_w = 0;
         endcase
-        o_busy_w = 1'b0;
     end
 
     always @ (posedge i_clk or negedge i_rst_n) begin
@@ -87,15 +87,34 @@ module alu #(
             o_busy_r <= 1'b1;
             data_acc_r <= 0;
             data_acc_w <= 0;
+            multi_res_w <= 0;
             cycle_cnt_r <= 0;
+
+            wait2acc <= 0;
             mat_collecting <= 0;
+            o_tmp_r <= 0;
         end
         else begin
             // start output data
             o_data_r <= o_data_w;
             o_busy_r <= o_busy_w;
-            data_acc_r <= data_acc_w;
-            o_out_valid_r <= i_in_valid;
+            o_out_valid_r <= (i_in_valid && o_out_valid_w);
+
+            // wait for accumulate (Important! we must wait until acc to update before moving on to next inst)
+            if (wait2acc) begin
+                o_tmp_multi_r <= multi_res_w;
+                o_tmp_r <= data_acc_r;
+
+                data_acc_r <= data_acc_r + multi_res_w;
+                // TODO: saturate acc
+                // ...
+                o_data_r <= round2DATA_W(data_acc_r + multi_res_w);
+                o_busy_r <= 1'b0;
+                o_busy_w <= 1'b0;
+                o_out_valid_w <= 1'b1;
+                o_out_valid_r <= 1'b1;
+                wait2acc <= 1'b0;
+            end
 
             // a valid collecting cycle
             if (mat_collecting && i_in_valid) begin
@@ -141,6 +160,28 @@ module alu #(
         end
     endfunction
 
+    function [ACC_W-1:0] multi_func;
+        input [DATA_W-1:0] i_data_a; // 16
+        input [DATA_W-1:0] i_data_b;
+        reg   [ACC_W-1:0]  tmp; // 36
+        reg                sign_r;
+        
+        begin
+            sign_r = 0;
+            if (i_data_a[DATA_W-1]) begin
+                sign_r = ~sign_r;
+                i_data_a = (~i_data_a) + 1;
+            end
+
+            if (i_data_b[DATA_W-1]) begin
+                sign_r = ~sign_r;
+                i_data_b = (~i_data_b) + 1;
+            end
+
+            tmp = {20'b0, i_data_a} * {20'b0, i_data_b};
+            multi_func = (sign_r) ? (~tmp) + 1 : tmp; 
+        end
+    endfunction
 
     // rounding
     function [DATA_W-1:0] round2DATA_W;
@@ -154,7 +195,7 @@ module alu #(
             // round to nearest
             tmp = i_data[ACC_W - 1 - (ACC_INT_W - INT_W):FRAC_W]; // 25:10
             // if tmp == 011..1 and round up will overflow
-            round2DATA_W = i_data[ACC_W-1: 20]; //tmp + ((i_data[FRAC_W-1] == 1'b1) ? 1 : 0); // i_data[ACC_W-1: 20]; //
+            round2DATA_W = tmp + ((i_data[FRAC_W-1] == 1'b1) ? 1 : 0); // i_data[ACC_W-1: 20]; //
        
             // if (i_data[ACC_W-1:ACC_W - (ACC_INT_W - INT_W)] == 10'b0 || 
             //     i_data[ACC_W-1:ACC_W - (ACC_INT_W - INT_W)] == 10'b1) // {(ACC_INT_W - INT_W){1'b0}}
