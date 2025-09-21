@@ -90,8 +90,7 @@ module testbench #(
     parameter INST_W = 4,
     parameter INT_W  = 6,
     parameter FRAC_W = 10,
-    parameter DATA_W = INT_W + FRAC_W,
-    parameter ACC_W = 36 // tmp
+    parameter DATA_W = INT_W + FRAC_W
 ) ();
 
     // Ports
@@ -105,16 +104,12 @@ module testbench #(
     wire              busy;
     wire              out_valid;
     wire [DATA_W-1:0] odata;
-    wire [ACC_W-1:0]  o_tmp_r, o_multi_r;
 
     // TB variables
     reg                        valid_seq   [0:`SEQ_LEN-1];
     reg  [INST_W+2*DATA_W-1:0] input_data  [0:`PAT_LEN-1];
     reg  [         DATA_W-1:0] golden_data [0:`PAT_LEN-1];
     reg  [         DATA_W-1:0] out_ram     [0:`PAT_LEN-1];
-
-    reg  [         ACC_W-1:0] out_tmp_ram     [0:`PAT_LEN-1];
-    reg  [         ACC_W-1:0] out_multi_ram     [0:`PAT_LEN-1];
 
     integer input_end, output_end, test_end;
     integer i, j, k;
@@ -141,9 +136,7 @@ module testbench #(
         .i_data_a    (idata_a  ),
         .i_data_b    (idata_b  ),
         .o_out_valid (out_valid),
-        .o_data      (odata    ),
-        .o_tmp     (o_tmp_r),
-        .o_multi     (o_multi_r)
+        .o_data      (odata    )
     );
 
     initial begin
@@ -233,8 +226,6 @@ module testbench #(
             @(negedge clk);
             if (out_valid === 1) begin
                 out_ram[k] = odata;
-                out_tmp_ram[k] = o_tmp_r;
-                out_multi_ram[k] = o_multi_r;
                 k = k+1;
             end
             @(posedge clk);
@@ -267,14 +258,10 @@ module testbench #(
         for(i = 0; i < `PAT_LEN; i = i + 1)
             if(golden_data[i] !== out_ram[i]) begin
                 $display("[ERROR  ]   [%d] Your Result:%16b Golden:%16b", i, out_ram[i], golden_data[i]);
-                $display("mul: %36b", out_multi_ram[i]);
-                $display("acc: %36b", out_tmp_ram[i]);
                 errors = errors + 1;
             end
             else begin
                 $display("[CORRECT]   [%d] Your Result:%16b Golden:%16b", i, out_ram[i], golden_data[i]);
-                $display("mul: %36b", out_multi_ram[i]);
-                $display("acc: %36b", out_tmp_ram[i]);
             end
         if(errors == 0)
             $display("Data             [PASS]");
