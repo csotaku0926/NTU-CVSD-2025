@@ -226,6 +226,7 @@ module testbench #(
             @(negedge clk);
             if (out_valid === 1) begin
                 out_ram[k] = odata;
+                $display("odata.. %16b", odata);
                 k = k+1;
             end
             @(posedge clk);

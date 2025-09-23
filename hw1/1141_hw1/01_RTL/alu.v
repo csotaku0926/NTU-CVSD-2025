@@ -26,8 +26,8 @@ module alu #(
     reg              o_out_valid_r, o_out_valid_w;
     reg              o_busy_r, o_busy_w;
     reg [ACC_W-1:0]  data_acc_r, data_acc_w, multi_res_w;
-    reg     [5-1:0]  cycle_cnt_r;
-    reg              mat_collecting, wait2acc;
+    reg     [6-1:0]  cycle_cnt_r;
+    reg              mat_collecting, wait2acc, done_collecting;
     reg     [DATA_W-1:0] row_mem [0:7];
 
     integer i;
@@ -38,32 +38,40 @@ module alu #(
     assign o_busy = o_busy_r;
 
     // procedual block
-    always @ (*) begin
+    always @ (posedge i_clk) begin
         o_busy_w = 1'b0;
-        case (i_inst)
-            4'b0000: o_data_w = add_func(i_data_a, i_data_b);
-            4'b0001: o_data_w = add_func(i_data_a, ~(i_data_b)+1);
-            // cannot use function to wrap multiplication due to acc
-            4'b0010: begin
-                // multiply
-                multi_res_w = multi_func(i_data_a, i_data_b); 
-                // signaling 
-                wait2acc = 1'b1;
-            end    
-            4'b0011: o_data_w = sin_func(i_data_a);
-            4'b0100: o_data_w = gray_code_func(i_data_a);
-            4'b0101: o_data_w = LRCW_func(i_data_a, i_data_b);
-            4'b0110: o_data_w = rr_func(i_data_a, i_data_b);
-            4'b0111: o_data_w = CLZ_func(i_data_a);
-            4'b1000: o_data_w = RevM4_func(i_data_a, i_data_b);
-            // wait for 8 cycles
-            4'b1001: begin
-                // only enable collecting in the beginning!
-                if (cycle_cnt_r == 0) mat_collecting = 1'b1;
-                row_mem[cycle_cnt_r] = i_data_a;
-            end
-            default: o_data_w = 0;
-        endcase
+        // valid input arrives!
+        if (i_in_valid) begin
+            o_out_valid_w = 1'b1;
+            case (i_inst)
+                4'b0000: o_data_w = add_func(i_data_a, i_data_b);
+                4'b0001: o_data_w = add_func(i_data_a, ~(i_data_b)+1);
+                // cannot use function to wrap multiplication due to acc
+                4'b0010: begin
+                    // multiply
+                    multi_res_w = multi_func(i_data_a, i_data_b); 
+                    // saturate acc to 36-bit
+                    data_acc_w = add_ACC_func(data_acc_r, multi_res_w);
+                    // signaling 
+                    wait2acc = 1'b1;
+                end    
+                4'b0011: o_data_w = sin_func(i_data_a);
+                4'b0100: o_data_w = gray_code_func(i_data_a);
+                4'b0101: o_data_w = LRCW_func(i_data_a, i_data_b);
+                4'b0110: o_data_w = rr_func(i_data_a, i_data_b);
+                4'b0111: o_data_w = CLZ_func(i_data_a);
+                4'b1000: o_data_w = RevM4_func(i_data_a, i_data_b);
+                // wait for 8 cycles
+                4'b1001: begin
+                    mat_collecting = 1'b1;
+                    row_mem[cycle_cnt_r] = i_data_a;
+                end
+                default: o_data_w = 0;
+            endcase
+        end
+        else begin
+            o_out_valid_w = 0;
+        end
     end
 
     always @ (posedge i_clk or negedge i_rst_n) begin
@@ -71,11 +79,13 @@ module alu #(
         if (!i_rst_n) begin
             o_data_r <= 1'b0;
             o_out_valid_r <= 1'b0;
+            o_out_valid_w <= 1'b0;
             o_busy_r <= 1'b1;
             data_acc_r <= 0;
             data_acc_w <= 0;
             multi_res_w <= 0;
             cycle_cnt_r <= 0;
+            done_collecting <= 0;
 
             wait2acc <= 0;
             mat_collecting <= 0;
@@ -84,13 +94,10 @@ module alu #(
             // start output data
             o_data_r <= o_data_w;
             o_busy_r <= o_busy_w;
-            o_out_valid_r <= i_in_valid;
+            o_out_valid_r <= o_out_valid_w;
 
             // wait for accumulate (Important! we must wait until acc to update before moving on to next inst)
             if (wait2acc) begin
-
-                // saturate acc to 36-bit
-                data_acc_w = add_ACC_func(data_acc_r, multi_res_w);
 
                 // then do rounding and saturate to 16-bit
                 o_data_r <= round2DATA_W(data_acc_w);
@@ -99,25 +106,40 @@ module alu #(
             end
 
             // a valid collecting cycle
-            if (mat_collecting && i_in_valid) begin
-                cycle_cnt_r <= cycle_cnt_r + 1; // count cycle
-                if (cycle_cnt_r >= 5'd7) begin
-                    mat_collecting <= 1'b0;
-                    o_busy_r <= 1'b1; // pause input sequence
-                end
+            if (mat_collecting) begin
                 o_out_valid_r <= 0;
+                mat_collecting <= 0;
+
+                if (cycle_cnt_r >= 5'd7) begin
+                    done_collecting <= 1;
+                    o_busy_r <= 1;
+                    cycle_cnt_r <= 8;
+                end
+                else begin
+                    // // start to output 8 data without interruption
+                    cycle_cnt_r <= cycle_cnt_r + 1;
+                end
             end 
 
-            if (!mat_collecting && cycle_cnt_r > 0) begin
-                // output mattrans result
-                for (i=0; i<8; i=i+1) begin
-                    o_data_r[15-2*i] <= row_mem[i][2*cycle_cnt_r-1];
-                    o_data_r[15-2*i-1] <= row_mem[i][2*cycle_cnt_r-2];
+            if (done_collecting) begin
+                if (cycle_cnt_r == 0) begin 
+                    done_collecting <= 1'b0;
+                    o_out_valid_r <= 0;
+                    o_busy_r <= 0;
                 end
-                cycle_cnt_r <= cycle_cnt_r - 1;
-                o_out_valid_r <= 1'b1;
-                o_busy_r <= 1'b1;
+                else begin
+                    // output mattrans result
+                    for (i=0; i<8; i=i+1) begin
+                        o_data_r[15-2*i] <= row_mem[i][2*cycle_cnt_r-1];
+                        o_data_r[15-2*i-1] <= row_mem[i][2*cycle_cnt_r-2];
+                    end
+
+                    cycle_cnt_r <= cycle_cnt_r - 1;
+                    o_out_valid_r <= 1'b1;
+                    o_busy_r <= 1'b1;
+                end
             end
+
         end
     end
 
@@ -185,8 +207,8 @@ module alu #(
         end
     endfunction
 
-    // rounded 16 x 16 result
-    function [DATA_W-1:0] multi_n_round;
+    // 16 x 16 result
+    function [2*DATA_W-1:0] multi_func_32;
         input [DATA_W-1:0] i_data_a;
         input [DATA_W-1:0] i_data_b;
         reg                 sign_r;
@@ -205,14 +227,7 @@ module alu #(
             end
 
             tmp = {16'b0, i_data_a} * {16'b0, i_data_b};
-            tmp = (sign_r) ? (~tmp) + 1 : tmp; 
-
-            // maybe saturate?
-            // ...
-            // rounding
-            multi_n_round = tmp[2*DATA_W-1-INT_W : FRAC_W] + 
-                            ((tmp[FRAC_W-1] == 1'b1 && multi_n_round != {1'b0, {DATA_W-1{1'b1}} }) ? 1 : 0);    
-
+            multi_func_32 = (sign_r) ? (~tmp) + 1 : tmp; 
         end
     endfunction
 
@@ -248,7 +263,11 @@ module alu #(
         input [DATA_W-1:0]  i_data;
         reg   [DATA_W-1:0]   reci3fact; // 1/3! 
         reg   [DATA_W-1:0]   reci5fact; // 1/5!
-        reg   [DATA_W-1:0]   i_data_2, i_data_3, i_data_5; // data power 3
+        reg   [2*DATA_W-1:0]   i_data_2;
+        reg   [3*DATA_W-1:0]   i_data_3; 
+        reg   [5*DATA_W-1:0]   i_data_5; // data power 5
+        reg   [4*DATA_W-1:0]   reci3_data_3;
+        reg   [6*DATA_W-1:0]   reci5_data_5, tmp;
 
         begin
             // sin(x) = \sum_n(0:2) (-1)^n * x^(2n+1) / (2n+1)! 
@@ -257,13 +276,17 @@ module alu #(
             reci5fact = { {INT_W{1'b0}}, 10'b0000001001 };
 
             // calc
-            i_data_2 = multi_n_round(i_data, i_data);
-            i_data_3 = multi_n_round(i_data_2, i_data);
-            i_data_5 = multi_n_round(i_data_2, i_data_3);
+            i_data_2 = $signed(i_data) * $signed(i_data);
+            i_data_3 = $signed(i_data_2) * $signed(i_data);
+            i_data_5 = $signed(i_data_2) * $signed(i_data_3);
 
-            sin_func = i_data
-                       - multi_n_round(i_data_3, reci3fact)
-                       + multi_n_round(i_data_5, reci5fact);
+            reci3_data_3 = $signed(i_data_3) * $signed(reci3fact);
+            reci5_data_5 = $signed(i_data_5) * $signed(reci5fact);
+
+            tmp = { {5*INT_W{1'b0}}, i_data, {5*FRAC_W{1'b0}} } 
+                - {{2*INT_W{1'b0}}, reci3_data_3, {2*FRAC_W{1'b0}}}
+                + reci5_data_5;
+            sin_func = tmp[6*DATA_W-1 - 5 * INT_W: 5*FRAC_W] + ((tmp[5*FRAC_W-1]) ? 1 : 0);
         end
     endfunction
 
