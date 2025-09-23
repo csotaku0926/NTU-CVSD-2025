@@ -27,7 +27,7 @@ module alu #(
     reg              o_busy_r, o_busy_w;
     reg [ACC_W-1:0]  data_acc_r, data_acc_w, multi_res_w;
     reg     [6-1:0]  cycle_cnt_r;
-    reg              mat_collecting, wait2acc, done_collecting;
+    reg              done_collecting;
     reg     [DATA_W-1:0] row_mem [0:7];
 
     integer i;
@@ -39,7 +39,9 @@ module alu #(
 
     // procedual block
     always @ (posedge i_clk) begin
-        o_busy_w = 1'b0;
+        o_busy_w <= 1'b0;
+        // mat_collecting <= 0;
+        // wait2acc <= 1'b0;
         // valid input arrives!
         if (i_in_valid) begin
             o_out_valid_w = 1'b1;
@@ -53,7 +55,7 @@ module alu #(
                     // saturate acc to 36-bit
                     data_acc_w = add_ACC_func(data_acc_r, multi_res_w);
                     // signaling 
-                    wait2acc = 1'b1;
+                    // wait2acc <= 1'b1;
                 end    
                 4'b0011: o_data_w = sin_func(i_data_a);
                 4'b0100: o_data_w = gray_code_func(i_data_a);
@@ -63,7 +65,7 @@ module alu #(
                 4'b1000: o_data_w = RevM4_func(i_data_a, i_data_b);
                 // wait for 8 cycles
                 4'b1001: begin
-                    mat_collecting = 1'b1;
+                    // mat_collecting <= 1'b1;
                     row_mem[cycle_cnt_r] = i_data_a;
                 end
                 default: o_data_w = 0;
@@ -79,16 +81,14 @@ module alu #(
         if (!i_rst_n) begin
             o_data_r <= 1'b0;
             o_out_valid_r <= 1'b0;
-            o_out_valid_w <= 1'b0;
             o_busy_r <= 1'b1;
             data_acc_r <= 0;
-            data_acc_w <= 0;
             multi_res_w <= 0;
             cycle_cnt_r <= 0;
             done_collecting <= 0;
 
-            wait2acc <= 0;
-            mat_collecting <= 0;
+            // wait2acc <= 0;
+            // mat_collecting <= 0;
         end
         else begin
             // start output data
@@ -97,19 +97,16 @@ module alu #(
             o_out_valid_r <= o_out_valid_w;
 
             // wait for accumulate (Important! we must wait until acc to update before moving on to next inst)
-            if (wait2acc) begin
-
+            if (i_in_valid && i_inst == 4'b0010) begin
                 // then do rounding and saturate to 16-bit
                 o_data_r <= round2DATA_W(data_acc_w);
                 data_acc_r <= data_acc_w;
-                wait2acc <= 1'b0;
             end
 
             // a valid collecting cycle
-            if (mat_collecting) begin
+            if (i_in_valid && i_inst == 4'b1001) begin
                 o_out_valid_r <= 0;
-                mat_collecting <= 0;
-
+                
                 if (cycle_cnt_r >= 5'd7) begin
                     done_collecting <= 1;
                     o_busy_r <= 1;
