@@ -25,9 +25,9 @@ module alu #(
     reg [DATA_W-1:0] o_data_r, o_data_w;
     reg              o_out_valid_r, o_out_valid_w;
     reg              o_busy_r, o_busy_w;
-    reg [ACC_W-1:0]  data_acc_r, data_acc_w, multi_res_w;
+    reg [ACC_W-1:0]  data_acc_r, data_acc_w;
     reg     [6-1:0]  cycle_cnt_r;
-    reg              done_collecting;
+    reg              wait2acc, mat_collecting, done_collecting;
     reg     [DATA_W-1:0] row_mem [0:7];
 
     integer i;
@@ -38,91 +38,62 @@ module alu #(
     assign o_busy = o_busy_r;
 
     // procedual block
-    always @ (posedge i_clk) begin
-        o_busy_w <= 1'b0;
-        // mat_collecting <= 0;
-        // wait2acc <= 1'b0;
-        // valid input arrives!
-        if (i_in_valid) begin
-            o_out_valid_w = 1'b1;
-            case (i_inst)
-                4'b0000: o_data_w = add_func(i_data_a, i_data_b);
-                4'b0001: o_data_w = add_func(i_data_a, ~(i_data_b)+1);
-                // cannot use function to wrap multiplication due to acc
-                4'b0010: begin
-                    // multiply
-                    multi_res_w = multi_func(i_data_a, i_data_b); 
-                    // saturate acc to 36-bit
-                    data_acc_w = add_ACC_func(data_acc_r, multi_res_w);
-                    // signaling 
-                    // wait2acc <= 1'b1;
-                end    
-                4'b0011: o_data_w = sin_func(i_data_a);
-                4'b0100: o_data_w = gray_code_func(i_data_a);
-                4'b0101: o_data_w = LRCW_func(i_data_a, i_data_b);
-                4'b0110: o_data_w = rr_func(i_data_a, i_data_b);
-                4'b0111: o_data_w = CLZ_func(i_data_a);
-                4'b1000: o_data_w = RevM4_func(i_data_a, i_data_b);
-                // wait for 8 cycles
-                4'b1001: begin
-                    // mat_collecting <= 1'b1;
-                    row_mem[cycle_cnt_r] = i_data_a;
-                end
-                default: o_data_w = 0;
-            endcase
-        end
-        else begin
-            o_out_valid_w = 0;
-        end
-    end
-
     always @ (posedge i_clk or negedge i_rst_n) begin
+        
         // async reset: reset at RST edge
         if (!i_rst_n) begin
             o_data_r <= 1'b0;
             o_out_valid_r <= 1'b0;
             o_busy_r <= 1'b1;
             data_acc_r <= 0;
-            multi_res_w <= 0;
             cycle_cnt_r <= 0;
             done_collecting <= 0;
 
-            // wait2acc <= 0;
+            wait2acc <= 0;
             // mat_collecting <= 0;
         end
-        else begin
-            // start output data
-            o_data_r <= o_data_w;
-            o_busy_r <= o_busy_w;
-            o_out_valid_r <= o_out_valid_w;
+        // valid input arrives!
+        else if (i_in_valid) begin
+            o_busy_r <= (cycle_cnt_r == 5'd7); // for mat transpose
+            wait2acc <= (i_inst == 4'b0010);
+            // mat_collecting <= (i_inst == 4'b1001);
+            o_out_valid_r <= (i_inst != 4'b1001);
+            case (i_inst)
+                4'b0000: o_data_r <= add_func(i_data_a, i_data_b);
+                4'b0001: o_data_r <= add_func(i_data_a, ~(i_data_b)+1);
+                // cannot use function to wrap multiplication due to acc
+                4'b0010: begin
+                    // multiply
+                    // saturate acc to 36-bit
+                    data_acc_w <= add_ACC_func(data_acc_r, multi_func(i_data_a, i_data_b));
+                    o_data_r <= round2DATA_W(add_ACC_func(data_acc_r, multi_func(i_data_a, i_data_b)));
+                end    
+                4'b0011: o_data_r <= sin_func(i_data_a);
+                4'b0100: o_data_r <= gray_code_func(i_data_a);
+                4'b0101: o_data_r <= LRCW_func(i_data_a, i_data_b);
+                4'b0110: o_data_r <= rr_func(i_data_a, i_data_b);
+                4'b0111: o_data_r <= CLZ_func(i_data_a);
+                4'b1000: o_data_r <= RevM4_func(i_data_a, i_data_b);
+                // wait for 8 cycles
+                4'b1001: begin
+                    row_mem[cycle_cnt_r] <= i_data_a;
 
-            // wait for accumulate (Important! we must wait until acc to update before moving on to next inst)
-            if (i_in_valid && i_inst == 4'b0010) begin
-                // then do rounding and saturate to 16-bit
-                o_data_r <= round2DATA_W(data_acc_w);
-                data_acc_r <= data_acc_w;
-            end
-
-            // a valid collecting cycle
-            if (i_in_valid && i_inst == 4'b1001) begin
-                o_out_valid_r <= 0;
-                
-                if (cycle_cnt_r >= 5'd7) begin
-                    done_collecting <= 1;
-                    o_busy_r <= 1;
-                    cycle_cnt_r <= 8;
-                end
-                else begin
-                    // // start to output 8 data without interruption
+                    // start to output 8 data without interruption
+                    done_collecting <= (cycle_cnt_r >= 5'd7);
                     cycle_cnt_r <= cycle_cnt_r + 1;
                 end
-            end 
-
+                default: o_data_r <= 0;
+            endcase
+        end
+        else begin
+            wait2acc <= 0;
+            // mat_collecting <= 0;
+            o_out_valid_r <= (done_collecting && (cycle_cnt_r > 0));
+            o_busy_r <= (done_collecting && (cycle_cnt_r > 0));
+        
             if (done_collecting) begin
-                if (cycle_cnt_r == 0) begin 
-                    done_collecting <= 1'b0;
-                    o_out_valid_r <= 0;
-                    o_busy_r <= 0;
+                if (cycle_cnt_r == 0) begin
+                    done_collecting <= 0;
                 end
                 else begin
                     // output mattrans result
@@ -132,12 +103,30 @@ module alu #(
                     end
 
                     cycle_cnt_r <= cycle_cnt_r - 1;
-                    o_out_valid_r <= 1'b1;
-                    o_busy_r <= 1'b1;
                 end
             end
-
+            
         end
+
+
+        
+    end
+
+    always @ (negedge i_clk) begin
+
+       
+        // start output data
+        // o_data_r <= o_data_w;
+        // o_busy_r <= o_busy_w;
+        // o_out_valid_r <= o_out_valid_w;
+
+        // wait for accumulate (Important! we must wait until acc to update before moving on to next inst)
+        if (wait2acc) begin
+            // then do rounding and saturate to 16-bit
+            data_acc_r <= data_acc_w;
+        end
+
+        
     end
 
     // functions (remember to add semicolon behind declarations)
@@ -201,30 +190,6 @@ module alu #(
 
             tmp = {20'b0, i_data_a} * {20'b0, i_data_b};
             multi_func = (sign_r) ? (~tmp) + 1 : tmp; 
-        end
-    endfunction
-
-    // 16 x 16 result
-    function [2*DATA_W-1:0] multi_func_32;
-        input [DATA_W-1:0] i_data_a;
-        input [DATA_W-1:0] i_data_b;
-        reg                 sign_r;
-        reg   [2*DATA_W-1:0] tmp;
-
-        begin
-            sign_r = 0;
-            if (i_data_a[DATA_W-1]) begin
-                sign_r = ~sign_r;
-                i_data_a = (~i_data_a) + 1;
-            end
-
-            if (i_data_b[DATA_W-1]) begin
-                sign_r = ~sign_r;
-                i_data_b = (~i_data_b) + 1;
-            end
-
-            tmp = {16'b0, i_data_a} * {16'b0, i_data_b};
-            multi_func_32 = (sign_r) ? (~tmp) + 1 : tmp; 
         end
     endfunction
 
