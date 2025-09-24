@@ -27,7 +27,7 @@ module alu #(
     reg              o_busy_r, o_busy_w;
     reg [ACC_W-1:0]  data_acc_r, data_acc_w;
     reg     [6-1:0]  cycle_cnt_r;
-    reg              wait2acc, mat_collecting, done_collecting;
+    reg              done_collecting;
     reg     [DATA_W-1:0] row_mem [0:7];
 
     integer i;
@@ -45,18 +45,14 @@ module alu #(
             o_data_r <= 1'b0;
             o_out_valid_r <= 1'b0;
             o_busy_r <= 1'b1;
-            data_acc_r <= 0;
+            data_acc_w <= 0;
             cycle_cnt_r <= 0;
             done_collecting <= 0;
-
-            wait2acc <= 0;
-            // mat_collecting <= 0;
+            for (i=0; i<8; i=i+1) row_mem[i] <= 0;
         end
         // valid input arrives!
         else if (i_in_valid) begin
             o_busy_r <= (cycle_cnt_r == 5'd7); // for mat transpose
-            wait2acc <= (i_inst == 4'b0010);
-            // mat_collecting <= (i_inst == 4'b1001);
             o_out_valid_r <= (i_inst != 4'b1001);
             case (i_inst)
                 4'b0000: o_data_r <= add_func(i_data_a, i_data_b);
@@ -86,8 +82,6 @@ module alu #(
             endcase
         end
         else begin
-            wait2acc <= 0;
-            // mat_collecting <= 0;
             o_out_valid_r <= (done_collecting && (cycle_cnt_r > 0));
             o_busy_r <= (done_collecting && (cycle_cnt_r > 0));
         
@@ -105,7 +99,7 @@ module alu #(
                     cycle_cnt_r <= cycle_cnt_r - 1;
                 end
             end
-            
+
         end
 
 
@@ -120,12 +114,7 @@ module alu #(
         // o_busy_r <= o_busy_w;
         // o_out_valid_r <= o_out_valid_w;
 
-        // wait for accumulate (Important! we must wait until acc to update before moving on to next inst)
-        if (wait2acc) begin
-            // then do rounding and saturate to 16-bit
-            data_acc_r <= data_acc_w;
-        end
-
+        data_acc_r <= data_acc_w;
         
     end
 
