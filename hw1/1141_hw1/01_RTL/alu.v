@@ -25,10 +25,10 @@ module alu #(
     reg [DATA_W-1:0] o_data_r, o_data_w;
     reg              o_out_valid_r, o_out_valid_w;
     reg              o_busy_r, o_busy_w;
-    reg [ACC_W-1:0]  data_acc_r, data_acc_w;
-    reg     [6-1:0]  cycle_cnt_r;
+    reg [ACC_W-1:0]  data_acc_r; //, data_acc_w;
+    reg     [4-1:0]  cycle_cnt_r;
     reg              done_collecting;
-    reg     [DATA_W-1:0] row_mem [0:7];
+    reg     [2*DATA_W-1:0] row_mem [0:15];
 
     integer i;
 
@@ -45,23 +45,24 @@ module alu #(
             o_data_r <= 1'b0;
             o_out_valid_r <= 1'b0;
             o_busy_r <= 1'b1;
-            data_acc_w <= 0;
+            data_acc_r <= 0;
+            // data_acc_w <= 0;
             cycle_cnt_r <= 0;
             done_collecting <= 0;
-            for (i=0; i<8; i=i+1) row_mem[i] <= 0;
+            for (i=0; i<16; i=i+1) row_mem[i] <= 0;
         end
         // valid input arrives!
         else if (i_in_valid) begin
             o_busy_r <= (cycle_cnt_r == 5'd7); // for mat transpose
             o_out_valid_r <= (i_inst != 4'b1001);
             case (i_inst)
-                4'b0000: o_data_r <= add_func(i_data_a, i_data_b);
+                4'b0000: o_data_r <= add_func(i_data_a, {1'b0, i_data_b});
                 4'b0001: o_data_r <= add_func(i_data_a, ~(i_data_b)+1);
                 // cannot use function to wrap multiplication due to acc
                 4'b0010: begin
                     // multiply
                     // saturate acc to 36-bit
-                    data_acc_w <= add_ACC_func(data_acc_r, multi_func(i_data_a, i_data_b));
+                    data_acc_r <= add_ACC_func(data_acc_r, multi_func(i_data_a, i_data_b));
                     o_data_r <= round2DATA_W(add_ACC_func(data_acc_r, multi_func(i_data_a, i_data_b)));
                 end    
                 4'b0011: o_data_r <= sin_func(i_data_a);
@@ -101,31 +102,22 @@ module alu #(
             end
 
         end
-
-
         
     end
 
-    always @ (negedge i_clk) begin
+    // always @ (data_acc_w) begin
+    //     data_acc_r = data_acc_w;
 
-       
-        // start output data
-        // o_data_r <= o_data_w;
-        // o_busy_r <= o_busy_w;
-        // o_out_valid_r <= o_out_valid_w;
-
-        data_acc_r <= data_acc_w;
-        
-    end
+    // end
 
     // functions (remember to add semicolon behind declarations)
-    function [DATA_W-1:0] add_func;
+    function automatic [DATA_W-1:0] add_func;
         input [DATA_W-1:0] i_data_a;
-        input [DATA_W-1:0] i_data_b;
+        input [DATA_W:0] i_data_b;
         reg   [DATA_W-1:0] tmp;
 
         begin
-            tmp = i_data_a + i_data_b;
+            tmp = i_data_a + i_data_b[DATA_W-1:0];
             // overflow if a, b > 0 but tmp < 0 (vice versa)
             if (
                 (i_data_a[DATA_W-1] != i_data_b[DATA_W-1]) ||
@@ -139,7 +131,7 @@ module alu #(
         end
     endfunction
 
-    function [ACC_W-1:0] add_ACC_func;
+    function automatic [ACC_W-1:0] add_ACC_func;
         input [ACC_W-1:0] i_data_a;
         input [ACC_W-1:0] i_data_b;
         reg   [ACC_W-1:0] tmp;
@@ -159,7 +151,7 @@ module alu #(
         end
     endfunction
 
-    function [ACC_W-1:0] multi_func;
+    function automatic [ACC_W-1:0] multi_func;
         input [DATA_W-1:0] i_data_a; // 16
         input [DATA_W-1:0] i_data_b;
         reg   [ACC_W-1:0]  tmp; // 36
@@ -183,7 +175,7 @@ module alu #(
     endfunction
 
     // rounding
-    function [DATA_W-1:0] round2DATA_W;
+    function automatic [DATA_W-1:0] round2DATA_W;
         input [ACC_W-1:0]  i_data;
         reg   [DATA_W-1:0] tmp;  
 
@@ -210,7 +202,7 @@ module alu #(
     endfunction
 
     // sin function
-    function [DATA_W-1:0] sin_func;
+    function automatic [DATA_W-1:0] sin_func;
         input [DATA_W-1:0]  i_data;
         reg   [DATA_W-1:0]   reci3fact; // 1/3! 
         reg   [DATA_W-1:0]   reci5fact; // 1/5!
@@ -242,7 +234,7 @@ module alu #(
     endfunction
 
 
-    function [DATA_W-1:0] gray_code_func;
+    function automatic [DATA_W-1:0] gray_code_func;
         input [DATA_W-1:0] i_data;
         reg                   tmp;
         integer                 i;
@@ -256,7 +248,7 @@ module alu #(
         end
     endfunction
 
-    function [DATA_W-1:0] LRCW_func;
+    function automatic [DATA_W-1:0] LRCW_func;
         input [DATA_W-1:0] i_data_a;
         input [DATA_W-1:0] i_data_b;
         reg                     tmp; 
@@ -277,7 +269,7 @@ module alu #(
     endfunction
 
     // right rotation
-    function [DATA_W-1:0] rr_func;
+    function automatic [DATA_W-1:0] rr_func;
         input [DATA_W-1:0] i_data_a; // original
         input [DATA_W-1:0] i_data_b; // shift amount
 
@@ -287,7 +279,7 @@ module alu #(
     endfunction
 
     // count leading zero
-    function [DATA_W-1:0] CLZ_func;
+    function automatic [DATA_W-1:0] CLZ_func;
         input [DATA_W-1:0] i_data;
         integer                 i;
         reg                  flag;
@@ -304,7 +296,7 @@ module alu #(
     endfunction
 
     // reverse match 4
-    function [DATA_W-1:0] RevM4_func;
+    function automatic [DATA_W-1:0] RevM4_func;
         input [DATA_W-1:0] i_data_a;
         input [DATA_W-1:0] i_data_b;
         integer                 idx;
