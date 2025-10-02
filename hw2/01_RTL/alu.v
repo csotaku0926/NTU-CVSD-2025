@@ -28,6 +28,10 @@ always @ (*) begin
             o_data = tmp;
             o_overflow = (i_data_a[DATA_WIDTH-1] == i_data_b[DATA_WIDTH-1]) && (i_data_a[DATA_WIDTH-1] != tmp[DATA_WIDTH-1]);
         end
+        default: begin
+            o_data = 0;
+            o_overflow = 0;
+        end
 
     endcase
 end

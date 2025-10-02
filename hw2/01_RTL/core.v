@@ -23,135 +23,175 @@ module core #( // DO NOT MODIFY INTERFACE!!!
 // Wires and Registers
 // ---------------------------------------------------------------------------
 // ---- Add your own wires and registers here if needed ---- //
+// ================  handle output  ======================
     reg    [2:0]            o_status_r;
+    wire   [2:0]            o_status_w;
     reg                     o_status_valid_r;
-    
-    reg    [ADDR_WIDTH-1:0] o_addr_r;
-    reg    [DATA_WIDTH-1:0] o_wdata_r;
-    reg                     o_we_r;
+    wire                    o_status_valid_w;
 
-    reg    [2:0]            state_r, state_w; // FSM state
-    reg    [ADDR_WIDTH-1:0] pc_r; // program counter
+    always @ (posedge i_clk or negedge i_rst_n) begin
+        // async reset
+        if (!i_rst_n) begin
+            o_status_r <= 0;
+            o_status_valid_r <= 0;
+        end
+        else begin
+            o_status_r <= o_status_w;
+            o_status_valid_r <= o_status_valid_w;
+        end
+    end
 
-    // ALU
-    reg    [2:0]            alu_op_r;
+    assign o_status = o_status_r;
+    assign o_status_valid = o_status_valid_r;
 
-    // define instruction mapping
+// ================  state machine  ======================
+    reg    [2:0]            state_r, state_next; // FSM state
+
+    localparam S_IDLE = 3'd0;
+    localparam S_IF = 3'd1;
+    localparam S_CALC = 3'd2;
+    localparam S_WB = 3'd3;
+    localparam S_EOF = 3'd4;
+
+    always @ (*) begin
+        case (state_r)
+            S_IDLE: state_next <= S_IF;
+            S_IF: state_next <= S_CALC;
+            S_CALC: state_next <= S_WB; // TODO: add terminate condition
+            S_WB: state_next <= S_IF;
+            S_EOF: state_next <= S_EOF;
+            default: state_next <= S_IDLE;
+        endcase
+    end
+
+
+// ================= instruction mapping ============================
     // R-type
     wire   [6:0]            opcode_w;
     wire   [4:0]            rd_w; // rd / fd
     wire   [2:0]            funct3_w;
     wire   [4:0]            r1_w, r2_w;
     wire   [6:0]            funct7_w;
-    // I-type
-    wire   [11:0]           imm_i_w;
-    // S-type
-    wire   [11:0]           imm_s_w;
-    // B-type (imm is implictly 2-bit alignment)
-    wire   [11:0]           imm_b_w;      
-    // U-type
-    wire   [19:0]           imm_u_w;
+    // imm for I-type, S-type and B-type (implictly 2-bit alignment)(12-bit), U-type (20-bit)
+    wire   [DATA_WIDTH-1:0] imm_w;
+    wire                    is_r_type, is_i_type, is_s_type, is_b_type, is_u_type;
 
-    integer i;
+    // inst
+    assign opcode_w = i_rdata[6:0];
+    assign rd_w = i_rdata[11:7];
+    assign funct3_w = i_rdata[14:12];
+    assign r1_w = i_rdata[19:15];
+    assign r2_w = i_rdata[24:20];
+    assign funct7_w = i_rdata[31:25];
 
-    // ???
+    // types
+    assign is_r_type = (opcode_w == `OP_SUB) | (opcode_w == `OP_FSUB);
+    assign is_i_type = (opcode_w == `OP_ADDI) | (opcode_w == `OP_LW) | (opcode_w == `OP_JALR) | (opcode_w == `OP_FLW);
+    assign is_s_type = (opcode_w == `OP_SW) | (opcode_w == `OP_FSW);
+    assign is_b_type = (opcode_w == `OP_BEQ);
+    assign is_u_type = (opcode_w == `OP_AUIPC);
+
+    assign imm_w = (is_i_type ? { 20'b0, i_rdata[31:20] } : (
+                    is_s_type ? { 20'b0, i_rdata[31:25], i_rdata[11:7] } : (
+                    is_b_type ? { 20'b0, i_rdata[31], i_rdata[7], i_rdata[30:25], i_rdata[11:8] } : { 12'b0, i_rdata[31:12] }
+    )));
+
+
+    // output wire
+    assign o_status_w = (is_r_type ? `R_TYPE : (
+                        is_i_type ? `I_TYPE : (
+                        is_s_type ? `S_TYPE : (
+                        is_b_type ? `B_TYPE : (
+                        is_u_type ? `U_TYPE : (
+                        (alu_is_overflow_w) ? `INVALID_TYPE : `EOF_TYPE
+    ))))));
+
+    assign o_status_valid_w = (state_r == S_WB) | (state_r == S_EOF);
+
+// =================  plug in to reg file  ====================
     wire                    isreg_a_w, isreg_b_w, isreg_write_w;
+    wire   [DATA_WIDTH-1:0] data_a_fromReg_w, data_b_fromReg_w;
+    wire   [DATA_WIDTH-1:0] writeData_w;
+    wire                    doWrite_w;
 
-// states
-localparam S_IDLE = 3'd0;
-localparam S_IF = 3'd1;
-localparam S_ID = 3'd2;
+    assign isreg_a_w = (opcode_w != `OP_FSUB); // not 7'b1010011
+    assign isreg_b_w = ((opcode_w != `OP_FSUB) && (opcode_w != `OP_FSW)); // not FSUB and not fsw
+    assign doWrite_w = (state_r == S_WB) & (~is_s_type) & (~is_b_type) & (opcode_w != `OP_EOF);
+    assign isreg_write_w = (opcode_w != `OP_FSUB);
 
-// ---------------------------------------------------------------------------
-// Continuous Assignment
-// ---------------------------------------------------------------------------
-// ---- Add your own wire data assignments here if needed ---- //
-assign o_status = o_status_r;
-assign o_status_valid = o_status_valid_r;
-assign o_addr = o_addr_r;
-assign o_wdata = o_wdata_r;
-assign o_we = o_we_r;
+    reg_file u_reg_file(
+        .i_clk(i_clk),
+        .i_rst_n(i_rst_n),
+        .i_addr_a(r1_w),
+        .i_isreg_a(isreg_a_w),
+        .i_addr_b(r2_w),
+        .i_isreg_b(isreg_b_w),
+        .i_doWrite(doWrite_w),
+        .i_writeisReg(isreg_write_w),
+        .i_writeAddr(rd_w),
+        .i_writeData(writeData_w),
+        .o_data_a(data_a_fromReg_w),
+        .o_data_b(data_b_fromReg_w)
+    );
 
-// inst
-assign opcode_w = i_rdata[6:0];
-assign rd_w = i_rdata[11:7];
-assign funct3_w = i_rdata[14:12];
-assign r1_w = i_rdata[19:15];
-assign r2_w = i_rdata[24:20];
-assign funct7_w = i_rdata[31:25];
+// =============  plug in to ALU  ==================
+    reg    [2:0]            alu_op_r;
+    wire   [DATA_WIDTH-1:0] alu_o_data_w;
+    wire                    alu_is_overflow_w;
+    wire   [DATA_WIDTH-1:0] data_a_forALU_w, data_b_forALU_w;
+ 
+    assign data_a_forALU_w = (is_u_type ? pc_r : data_a_fromReg); // r1 except for U type
+    assign data_b_forALU_w = ((is_r_type | is_b_type) ? data_b_fromReg : (
+                            is_u_type ? imm_w << 12 : imm_w
+    )); 
+    // R, B type: data_b_from_reg, I, S type: imm, U type: imm << 12
 
-assign imm_i_w = i_rdata[31:20];
-assign imm_s_w = { i_rdata[31:25], i_rdata[11:7] };
-assign imm_b_w = { i_rdata[31], i_rdata[7], i_rdata[30:25], i_rdata[11:8] };
-assign imm_u_w = i_rdata[31:12];
+    alu u_alu(
+        .i_op(alu_op_r),
+        .i_data_a(data_a_forALU_w),
+        .i_data_b(data_b_forALU_w),
+        .o_data(alu_o_data_w),
+        .o_overflow(alu_is_overflow_w)
+    );
 
-// reg file
-assign isreg_a_w = (opcode_w != `OP_FSUB); // not 7'b1010011
-assign isreg_b_w = ((opcode_w != `OP_FSUB) && (opcode_w)); // not FSUB and not fsw
+    // reg write is dependent on ALU
+    assign writeData_w = alu_o_data_w;
 
-// ---------------------------------------------------------------------------
-// Combinational Blocks
-// ---------------------------------------------------------------------------
-// ---- Write your conbinational block design here ---- //
 
-// ---------------------------------------------------------------------------
-// Sequential Block
-// ---------------------------------------------------------------------------
-// ---- Write your sequential block design here ---- //
+// =================== read from / write to MEM  ===================
+    reg    [ADDR_WIDTH-1:0] o_addr_r;
+    reg    [DATA_WIDTH-1:0] o_wdata_r;
+    reg                     o_we_r;
 
-// state reg
-always @ (posedge i_clk or negedge i_rst_n) begin
-    // async reset
-    if (!i_rst_n) state_r <= S_IDLE;
-    else state_r <= state_w;
-end
+    reg    [ADDR_WIDTH-1:0] pc_r; // program counter
 
-// next state logic
-always @ (*) begin
-    case (state_r)
-        S_IDLE: begin
-            o_status_r <= 0;
-            o_status_valid_r <= 0;
+    always @ (posedge i_clk or negedge i_rst_n) begin
+        // async reset
+        if (!i_rst_n) begin
+            o_we_r <= 0;
             o_addr_r <= 0;
             o_wdata_r <= 0;
-            o_we_r <= 0;
-            pc_r <= 0;
-
-            state_w <= S_IF;
         end
-        S_IF: begin
+        else if (state_r == S_IF) begin
             // fetch instruction from inst mem (0~4095)
             o_we_r <= 0;
             o_addr_r <= pc_r;
-
-            state_w <= S_ID; // i_rdata is to be expected in the next cycle
+            o_wdata_r <= 0;
         end
-        S_ID: begin
-            // instruction decoding
-            case (opcode_w)
-                `OP_ADDI: alu_op_r = `ALU_ADD;
-
-            endcase
+        else if (state_r == S_WB) begin
+            // write result back to MEM
+            // MEM[$r1 + im] = $r2
+            o_we_r <= 1;
+            o_addr_r <= alu_o_data_w;
+            o_wdata_r <= data_b_fromReg_w;
         end
-        default: state_w <= S_IDLE;
-    endcase
-end
-
-// plug in to reg file
-reg_file u_reg_file(
-    .i_clk(i_clk),
-    .i_rst_n(i_rst_n),
-    .i_addr_a(r1_w),
-    .i_isreg_a()
-);
-
-// plug in to ALU
-alu u_alu(
-    .i_op(alu_op_r),
-    .i_data_a(),
-    .i_data_b(),
-    .o_data(),
-    .o_overflow()
-);
+        else begin
+            o_we_r <= 0;
+        end
+    end
+    
+    assign o_we = o_we_r;
+    assign o_addr = o_addr_r;
+    assign o_wdata = o_wdata_r;
 
 endmodule
