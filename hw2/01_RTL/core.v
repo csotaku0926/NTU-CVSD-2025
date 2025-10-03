@@ -44,26 +44,6 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     assign o_status = o_status_r;
     assign o_status_valid = o_status_valid_r;
 
-// ================  state machine  ======================
-    reg    [2:0]            state_r, state_next; // FSM state
-
-    localparam S_IDLE = 3'd0;
-    localparam S_IF = 3'd1;
-    localparam S_CALC = 3'd2;
-    localparam S_WB = 3'd3;
-    localparam S_EOF = 3'd4;
-
-    always @ (*) begin
-        case (state_r)
-            S_IDLE: state_next <= S_IF;
-            S_IF: state_next <= S_CALC;
-            S_CALC: state_next <= S_WB; // TODO: add terminate condition
-            S_WB: state_next <= S_IF;
-            S_EOF: state_next <= S_EOF;
-            default: state_next <= S_IDLE;
-        endcase
-    end
-
 
 // ================= instruction mapping ============================
     // R-type
@@ -74,7 +54,7 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     wire   [6:0]            funct7_w;
     // imm for I-type, S-type and B-type (implictly 2-bit alignment)(12-bit), U-type (20-bit)
     wire   [DATA_WIDTH-1:0] imm_w;
-    wire                    is_r_type, is_i_type, is_s_type, is_b_type, is_u_type;
+    wire                    is_r_type, is_i_type, is_s_type, is_b_type, is_u_type, is_eof;
 
     // inst
     assign opcode_w = i_rdata[6:0];
@@ -90,6 +70,7 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     assign is_s_type = (opcode_w == `OP_SW) | (opcode_w == `OP_FSW);
     assign is_b_type = (opcode_w == `OP_BEQ);
     assign is_u_type = (opcode_w == `OP_AUIPC);
+    assign is_eof = (opcode_w == `OP_EOF);
 
     assign imm_w = (is_i_type ? { 20'b0, i_rdata[31:20] } : (
                     is_s_type ? { 20'b0, i_rdata[31:25], i_rdata[11:7] } : (
@@ -97,16 +78,32 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     )));
 
 
-    // output wire
-    assign o_status_w = (is_r_type ? `R_TYPE : (
-                        is_i_type ? `I_TYPE : (
-                        is_s_type ? `S_TYPE : (
-                        is_b_type ? `B_TYPE : (
-                        is_u_type ? `U_TYPE : (
-                        (alu_is_overflow_w) ? `INVALID_TYPE : `EOF_TYPE
-    ))))));
+// ================  state machine  ======================
+    reg    [2:0]            state_r, state_next; // FSM state
 
-    assign o_status_valid_w = (state_r == S_WB) | (state_r == S_EOF);
+    // invalid case --> S_END
+    wire                    is_invalid_w;
+    wire                    alu_is_overflow_w;
+    wire                    is_invalid_addr_w;
+
+    localparam S_IDLE = 3'd0;
+    localparam S_IF = 3'd1;
+    localparam S_CALC = 3'd2;
+    localparam S_WB = 3'd3;
+    localparam S_END = 3'd4;
+
+    assign is_invalid_w = (alu_is_overflow_w) | (is_invalid_addr_w);
+
+    always @ (*) begin
+        case (state_r)
+            S_IDLE: state_next = S_IF;
+            S_IF: state_next = S_CALC;
+            S_CALC: state_next = (is_eof | is_invalid_w) ? S_END : S_WB; // TODO: add terminate condition
+            S_WB: state_next = S_IF;
+            S_END: state_next = S_END;
+            default: state_next = S_IDLE;
+        endcase
+    end
 
 // =================  plug in to reg file  ====================
     wire                    isreg_a_w, isreg_b_w, isreg_write_w;
@@ -137,14 +134,21 @@ module core #( // DO NOT MODIFY INTERFACE!!!
 // =============  plug in to ALU  ==================
     reg    [2:0]            alu_op_r;
     wire   [DATA_WIDTH-1:0] alu_o_data_w;
-    wire                    alu_is_overflow_w;
     wire   [DATA_WIDTH-1:0] data_a_forALU_w, data_b_forALU_w;
+
  
     assign data_a_forALU_w = (is_u_type ? pc_r : data_a_fromReg); // r1 except for U type
     assign data_b_forALU_w = ((is_r_type | is_b_type) ? data_b_fromReg : (
                             is_u_type ? imm_w << 12 : imm_w
     )); 
     // R, B type: data_b_from_reg, I, S type: imm, U type: imm << 12
+
+    always @ (*) begin
+        case (opcode_w)
+            `OP_ADDI:   alu_op_r = `ALU_ADD;
+            `OP_SW:     alu_op_r = `ALU_ADD;
+        endcase
+    end
 
     alu u_alu(
         .i_op(alu_op_r),
@@ -154,9 +158,23 @@ module core #( // DO NOT MODIFY INTERFACE!!!
         .o_overflow(alu_is_overflow_w)
     );
 
+    // is calculated saved data MEM address valid ? (4096 ~ 8191)
+    assign is_invalid_addr_w = (is_s_type) & ~((32'd4096 <= alu_o_data_w) & (alu_o_data_w <= 32'd8191));
+
     // reg write is dependent on ALU
     assign writeData_w = alu_o_data_w;
 
+// ================== output handling 2 ============================
+
+    assign o_status_w = (is_r_type ? `R_TYPE : (
+                        is_i_type ? `I_TYPE : (
+                        is_s_type ? `S_TYPE : (
+                        is_b_type ? `B_TYPE : (
+                        is_u_type ? `U_TYPE : (
+                        is_invalid_w ? `INVALID_TYPE : `EOF_TYPE
+    ))))));
+
+    assign o_status_valid_w = (state_r == S_WB) | (state_r == S_END);
 
 // =================== read from / write to MEM  ===================
     reg    [ADDR_WIDTH-1:0] o_addr_r;
@@ -184,6 +202,8 @@ module core #( // DO NOT MODIFY INTERFACE!!!
             o_we_r <= 1;
             o_addr_r <= alu_o_data_w;
             o_wdata_r <= data_b_fromReg_w;
+            // update pc (TODO: B type)
+            pc_r <= pc_r + 4;
         end
         else begin
             o_we_r <= 0;
