@@ -3,6 +3,8 @@
 `define CYCLE       10.0
 `define HCYCLE      (`CYCLE/2)
 `define MAX_CYCLE   120000
+`define DATA_LEN 	2048
+
 // EOF type status
 `define INVALID_TYPE 5
 `define EOF_TYPE 6
@@ -51,6 +53,7 @@ module testbed #(
 	// TB variables
 	reg	 [ STAT_W-1 : 0 ] o_status_ram  [0:`STAT_LEN-1];
 	reg	 [ STAT_W-1 : 0 ] golden_status [0:`STAT_LEN-1];
+	reg  [ DATA_W-1 : 0 ] golden_data   [0:`DATA_LEN-1];
 	reg 					is_eof;
 
 	integer output_end;
@@ -78,8 +81,9 @@ module testbed #(
 
 	// load data memory
 	initial begin 
-		$readmemb (`INST, u_data_mem.mem_r);
+		$readmemb (`INST, u_data_mem.mem_r); // load inst into inst MEM
 		$readmemb (`STAT, golden_status);
+		$readmemb (`DATA, golden_data);
 	end
 
 	// clock module
@@ -143,6 +147,48 @@ module testbed #(
         # (2 * `PERIOD);
         $finish;
     end
+
+	// define validation task
+    integer stat_errors, data_errors;
+    task validate; begin
+		// check status
+        stat_errors = 0;
+		$display("===============================================================================");
+        $display("Status Check");
+        $display("===============================================================================");
+
+        for(i = 0; i < `STAT_LEN; i = i + 1)
+            if(golden_status[i] !== o_status_ram[i]) begin
+                $display("[ERROR  ]   [%d] Your Status:%3b Golden:%3b", i, o_status_ram[i], golden_status[i]);
+                stat_errors = stat_errors + 1;
+            end
+            else begin
+                $display("[CORRECT]   [%d] Your Status:%3b Golden:%3b", i, out_ram[i], golden_data[i]);
+            end
+
+		// check MEM
+		data_errors = 0;
+		$display("===============================================================================");
+        $display("Data Check");
+        $display("===============================================================================");
+		for (i = 0; i < `DATA_LEN; i = i + 1) begin
+			if (u_data_mem.mem_r[i] !== golden_data[i]) begin // assume mem_r[i] is 32-bit
+				$display("[ERROR  ]   [%d] Your Data:%32b Golden:%32b", i, u_data_mem.mem_r[i], golden_data[i]);
+                data_errors = data_errors + 1;
+			end
+			else begin
+                $display("[CORRECT]   [%d] Your Data:%32b Golden:%32b", i, u_data_mem.mem_r[i], golden_data[i]);
+            end
+		end
+		
+        if(stat_errors == 0 && data_errors == 0)
+            $display(">>> LIMBUS COMPANY! All result are correct!");
+        else
+            $display(">>> There are %d INST and %d DATA errors.. Dantehhh...", stat_errors, data_errors);
+            
+        $display("===============================================================================");
+    end
+    endtask
 
 endmodule
 
