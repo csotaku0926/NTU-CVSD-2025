@@ -13,4 +13,6 @@
 
 // design files: Be free to add your design files
 // -----------------------------------------------------------------------------
+./alu.v
+./reg_file.v
 ./core.v

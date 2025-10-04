@@ -11,7 +11,7 @@ module reg_file #(
     input                       i_doWrite,
     input                       i_writeisReg,
     input  [ADDR_WIDTH-1:0]     i_writeAddr,
-    input  [DATA_WIDTH-1:0]     i_writeData     
+    input  [DATA_WIDTH-1:0]     i_writeData,
 
     output [DATA_WIDTH-1:0]     o_data_a,
     output [DATA_WIDTH-1:0]     o_data_b    

@@ -1,6 +1,3 @@
-`include "define.v"
-`include "alu.v"
-
 module core #( // DO NOT MODIFY INTERFACE!!!
     parameter DATA_WIDTH = 32,
     parameter ADDR_WIDTH = 32
@@ -55,6 +52,7 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     // imm for I-type, S-type and B-type (implictly 2-bit alignment)(12-bit), U-type (20-bit)
     wire   [DATA_WIDTH-1:0] imm_w;
     wire                    is_r_type, is_i_type, is_s_type, is_b_type, is_u_type, is_eof;
+    wire                    is_load_op;
 
     // inst
     assign opcode_w = i_rdata[6:0];
@@ -70,11 +68,13 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     assign is_s_type = (opcode_w == `OP_SW) | (opcode_w == `OP_FSW);
     assign is_b_type = (opcode_w == `OP_BEQ);
     assign is_u_type = (opcode_w == `OP_AUIPC);
+    assign is_load_op = (opcode_w == `OP_LW) | (opcode_w == `OP_FLW);
     assign is_eof = (opcode_w == `OP_EOF);
 
-    assign imm_w = (is_i_type ? { 20'b0, i_rdata[31:20] } : (
-                    is_s_type ? { 20'b0, i_rdata[31:25], i_rdata[11:7] } : (
-                    is_b_type ? { 20'b0, i_rdata[31], i_rdata[7], i_rdata[30:25], i_rdata[11:8] } : { 12'b0, i_rdata[31:12] }
+    assign imm_w = (is_i_type ? { {20{i_rdata[31]}}, i_rdata[31:20] } : (
+                    is_s_type ? { {20{i_rdata[31]}}, i_rdata[31:25], i_rdata[11:7] } : (
+                    is_b_type ? { {20{i_rdata[31]}}, i_rdata[31], i_rdata[7], i_rdata[30:25], i_rdata[11:8] } : 
+                    { i_rdata[31:12], {12{i_rdata[31]}} } // U type: imm << 12 (no overflow considered)
     )));
 
 
@@ -98,11 +98,16 @@ module core #( // DO NOT MODIFY INTERFACE!!!
         case (state_r)
             S_IDLE: state_next = S_IF;
             S_IF: state_next = S_CALC;
-            S_CALC: state_next = (is_eof | is_invalid_w) ? S_END : S_WB; // TODO: add terminate condition
+            S_CALC: state_next = (is_eof | is_invalid_w) ? S_END : S_WB;
             S_WB: state_next = S_IF;
             S_END: state_next = S_END;
             default: state_next = S_IDLE;
         endcase
+    end
+
+    always @ (posedge i_clk or negedge i_rst_n) begin
+        if (!i_rst_n)   state_r <= S_IDLE;
+        else            state_r <= state_next;
     end
 
 // =================  plug in to reg file  ====================
@@ -114,7 +119,7 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     assign isreg_a_w = (opcode_w != `OP_FSUB); // not 7'b1010011
     assign isreg_b_w = ((opcode_w != `OP_FSUB) && (opcode_w != `OP_FSW)); // not FSUB and not fsw
     assign doWrite_w = (state_r == S_WB) & (~is_s_type) & (~is_b_type) & (opcode_w != `OP_EOF);
-    assign isreg_write_w = (opcode_w != `OP_FSUB);
+    assign isreg_write_w = (opcode_w != `OP_FSUB); // store to reg or float
 
     reg_file u_reg_file(
         .i_clk(i_clk),
@@ -132,21 +137,27 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     );
 
 // =============  plug in to ALU  ==================
-    reg    [2:0]            alu_op_r;
+    reg    [4:0]            alu_op_r;
     wire   [DATA_WIDTH-1:0] alu_o_data_w;
     wire   [DATA_WIDTH-1:0] data_a_forALU_w, data_b_forALU_w;
+    reg    [ADDR_WIDTH-1:0] pc_r; // program counter
 
  
-    assign data_a_forALU_w = (is_u_type ? pc_r : data_a_fromReg); // r1 except for U type
-    assign data_b_forALU_w = ((is_r_type | is_b_type) ? data_b_fromReg : (
-                            is_u_type ? imm_w << 12 : imm_w
-    )); 
-    // R, B type: data_b_from_reg, I, S type: imm, U type: imm << 12
+    assign data_a_forALU_w = (is_u_type ? pc_r : data_a_fromReg_w); // r1 except for U type
+    assign data_b_forALU_w = ((is_r_type | is_b_type) ? data_b_fromReg_w : imm_w); 
+    // R, B type: data_b_from_reg, I, S, U type: imm
 
+    // 1005 TODO: FLW
     always @ (*) begin
         case (opcode_w)
-            `OP_ADDI:   alu_op_r = `ALU_ADD;
-            `OP_SW:     alu_op_r = `ALU_ADD;
+            `OP_ADDI    :   alu_op_r = `ALU_ADD;
+            `OP_SUB     :   alu_op_r = ((funct3_w == `FUNCT3_SUB) ? `ALU_SUB : 
+                                        (funct3_w == `FUNCT3_SLT) ? `ALU_SLT : `ALU_SRL); // SUB, SLT, SRL have same opcode
+            `OP_SW      :   alu_op_r = `ALU_ADD;
+            `OP_LW      :   alu_op_r = `ALU_ADD;
+            `OP_AUIPC   :   alu_op_r = `ALU_ADD;
+            default     :   alu_op_r = `ALU_ADD;
+
         endcase
     end
 
@@ -159,29 +170,28 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     );
 
     // is calculated saved data MEM address valid ? (4096 ~ 8191)
-    assign is_invalid_addr_w = (is_s_type) & ~((32'd4096 <= alu_o_data_w) & (alu_o_data_w <= 32'd8191));
+    assign is_invalid_addr_w = (is_s_type | is_load_op) & ~((32'd4096 <= alu_o_data_w) & (alu_o_data_w <= 32'd8191));
 
     // reg write is dependent on ALU
     assign writeData_w = alu_o_data_w;
 
 // ================== output handling 2 ============================
 
-    assign o_status_w = (is_r_type ? `R_TYPE : (
+    // you should set invalid checking first!
+    assign o_status_w = (is_invalid_w ? `INVALID_TYPE : (
                         is_i_type ? `I_TYPE : (
                         is_s_type ? `S_TYPE : (
                         is_b_type ? `B_TYPE : (
                         is_u_type ? `U_TYPE : (
-                        is_invalid_w ? `INVALID_TYPE : `EOF_TYPE
+                        is_r_type ? `R_TYPE : `EOF_TYPE
     ))))));
 
-    assign o_status_valid_w = (state_r == S_WB) | (state_r == S_END);
+    assign o_status_valid_w = (state_next == S_WB) | (state_next == S_END);
 
-// =================== read from / write to MEM  ===================
+// =================== read from / write to MEM & PC update  ===================
     reg    [ADDR_WIDTH-1:0] o_addr_r;
     reg    [DATA_WIDTH-1:0] o_wdata_r;
     reg                     o_we_r;
-
-    reg    [ADDR_WIDTH-1:0] pc_r; // program counter
 
     always @ (posedge i_clk or negedge i_rst_n) begin
         // async reset
@@ -189,17 +199,24 @@ module core #( // DO NOT MODIFY INTERFACE!!!
             o_we_r <= 0;
             o_addr_r <= 0;
             o_wdata_r <= 0;
+            pc_r <= 0;
         end
-        else if (state_r == S_IF) begin
+        else if (state_next == S_IF) begin
             // fetch instruction from inst mem (0~4095)
             o_we_r <= 0;
             o_addr_r <= pc_r;
             o_wdata_r <= 0;
         end
-        else if (state_r == S_WB) begin
-            // write result back to MEM
+        else if (state_next == S_CALC && is_load_op) begin
+            // load data from MEM (lw, flw)
+            o_we_r <= 0;
+            o_addr_r <= alu_o_data_w;
+            o_wdata_r <= 0;
+        end
+        else if (state_next == S_WB) begin
+            // write result back to MEM (only s type)
             // MEM[$r1 + im] = $r2
-            o_we_r <= 1;
+            o_we_r <= is_s_type;
             o_addr_r <= alu_o_data_w;
             o_wdata_r <= data_b_fromReg_w;
             // update pc (TODO: B type)

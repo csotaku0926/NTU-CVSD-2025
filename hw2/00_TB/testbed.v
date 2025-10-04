@@ -1,6 +1,6 @@
 `timescale 1ns/100ps
-`define RST_DELAY   1.25
-`define CYCLE       10.0
+`define RST_DELAY   2.00
+`define CYCLE       8.0
 `define HCYCLE      (`CYCLE/2)
 `define MAX_CYCLE   120000
 `define DATA_LEN 	2048
@@ -37,12 +37,12 @@
 `endif
 
 module testbed #(
-	parameter DATA_W = 32;
-	parameter STAT_W = 3;
+	parameter DATA_W = 32,
+	parameter STAT_W = 3
 ) ();
 
-	reg  rst_n;
-	reg  clk;
+	reg  					  rst_n;
+	wire  						clk, clk2; // clk2 runs twice faster
 	wire            		dmem_we;
 	wire [ DATA_W-1 : 0 ] dmem_addr;
 	wire [ DATA_W-1 : 0 ] dmem_wdata;
@@ -55,6 +55,7 @@ module testbed #(
 	reg	 [ STAT_W-1 : 0 ] golden_status [0:`STAT_LEN-1];
 	reg  [ DATA_W-1 : 0 ] golden_data   [0:`DATA_LEN-1];
 	reg 					is_eof;
+	reg  [ DATA_W-1 : 0 ] i_rdata_r;
 
 	integer output_end;
 	integer i;
@@ -67,11 +68,11 @@ module testbed #(
 		.o_we(dmem_we),
 		.o_addr(dmem_addr),
 		.o_wdata(dmem_wdata),
-		.i_rdata(dmem_rdata)
+		.i_rdata(i_rdata_r)
 	);
 
 	data_mem  u_data_mem (
-		.i_clk(clk),
+		.i_clk(clk2),
 		.i_rst_n(rst_n),
 		.i_we(dmem_we),
 		.i_addr(dmem_addr),
@@ -81,6 +82,7 @@ module testbed #(
 
 	// load data memory
 	initial begin 
+		#((`RST_DELAY) 	* `CYCLE); 
 		$readmemb (`INST, u_data_mem.mem_r); // load inst into inst MEM
 		$readmemb (`STAT, golden_status);
 		$readmemb (`DATA, golden_data);
@@ -89,6 +91,7 @@ module testbed #(
 	// clock module
     clk_gen u_clk_gen (
         .clk   (clk  ),
+		.clk2  (clk2 ),
         .rst_n (rst_n)
     );
 
@@ -98,13 +101,19 @@ module testbed #(
 		$fsdbDumpvars(0, testbed, "+mda");
 	end
 
+	// input
+	always @ (posedge clk) begin
+		if (!rst_n) i_rdata_r <= 0;
+		else		i_rdata_r <= dmem_rdata;
+	end
+
 	// Output
 	initial begin
 		output_end = 0;
 
 		// reset
         wait (rst_n === 1'b0);
-        #(0.1 * `PERIOD);
+        #(`CYCLE);
         if (
             (mips_status     	!== 1'b0) ||
             (mips_status_valid 	!== 1'b0) ||
@@ -144,7 +153,7 @@ module testbed #(
         $display("Compute finished, start validating result...");
         validate();
         $display("Simulation finish");
-        # (2 * `PERIOD);
+        # (2 * `CYCLE);
         $finish;
     end
 
@@ -163,7 +172,7 @@ module testbed #(
                 stat_errors = stat_errors + 1;
             end
             else begin
-                $display("[CORRECT]   [%d] Your Status:%3b Golden:%3b", i, out_ram[i], golden_data[i]);
+                $display("[CORRECT]   [%d] Your Status:%3b Golden:%3b", i, o_status_ram[i], golden_status[i]);
             end
 
 		// check MEM
@@ -176,11 +185,12 @@ module testbed #(
 				$display("[ERROR  ]   [%d] Your Data:%32b Golden:%32b", i, u_data_mem.mem_r[i], golden_data[i]);
                 data_errors = data_errors + 1;
 			end
-			else begin
+			else if (u_data_mem.mem_r[i] != 0 && golden_data[i] != 0) begin
                 $display("[CORRECT]   [%d] Your Data:%32b Golden:%32b", i, u_data_mem.mem_r[i], golden_data[i]);
             end
 		end
-		
+
+		$display("===============================================================================");
         if(stat_errors == 0 && data_errors == 0)
             $display(">>> LIMBUS COMPANY! All result are correct!");
         else
@@ -194,15 +204,19 @@ endmodule
 
 module clk_gen (
 	output reg clk,
+	output reg clk2,
 	output reg rst_n
 );
 	always #(`HCYCLE) clk = ~clk;
+	always #(`HCYCLE / 2) clk2 = ~clk2;
 	initial begin
-		clk = 0;
-		rst_n = 1; #(0.25 					* `CYCLE); 
-		rst_n = 0; #((`RST_DELAY - 0.25) 	* `CYCLE); 
+		clk = 0; clk2 = 0;
+		rst_n = 1; #(1 					* `CYCLE); 
+		rst_n = 0; #((`RST_DELAY - 1) 	* `CYCLE); 
 		rst_n = 1; # (`MAX_CYCLE			* `CYCLE);
+		$display("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 		$display("[Error] T.L.E (Time Limit Exceed)... Clockhead");
+		$display("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 		$finish;
 	end
 endmodule
