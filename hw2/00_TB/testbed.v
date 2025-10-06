@@ -72,7 +72,7 @@ module testbed #(
 	);
 
 	data_mem  u_data_mem (
-		.i_clk(clk2),
+		.i_clk(clk),
 		.i_rst_n(rst_n),
 		.i_we(dmem_we),
 		.i_addr(dmem_addr),

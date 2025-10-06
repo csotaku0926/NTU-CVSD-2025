@@ -88,16 +88,18 @@ module core #( // DO NOT MODIFY INTERFACE!!!
 
     localparam S_IDLE = 3'd0;
     localparam S_IF = 3'd1;
-    localparam S_CALC = 3'd2;
-    localparam S_WB = 3'd3;
-    localparam S_END = 3'd4;
+    localparam S_WAIT = 3'd2; // postpone a cycle for i_rdata synch
+    localparam S_CALC = 3'd3;
+    localparam S_WB = 3'd4;
+    localparam S_END = 3'd5;
 
     assign is_invalid_w = (alu_is_overflow_w) | (is_invalid_addr_w);
 
     always @ (*) begin
         case (state_r)
             S_IDLE: state_next = S_IF;
-            S_IF: state_next = S_CALC;
+            S_IF: state_next = S_WAIT;
+            S_WAIT: state_next = S_CALC;
             S_CALC: state_next = (is_eof | is_invalid_w) ? S_END : S_WB;
             S_WB: state_next = S_IF;
             S_END: state_next = S_END;
@@ -116,10 +118,10 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     wire   [DATA_WIDTH-1:0] writeData_w;
     wire                    doWrite_w;
 
-    assign isreg_a_w = (opcode_w != `OP_FSUB); // not 7'b1010011
-    assign isreg_b_w = ((opcode_w != `OP_FSUB) && (opcode_w != `OP_FSW)); // not FSUB and not fsw
-    assign doWrite_w = (state_r == S_WB) & (~is_s_type) & (~is_b_type) & (opcode_w != `OP_EOF);
-    assign isreg_write_w = (opcode_w != `OP_FSUB); // store to reg or float
+    assign isreg_a_w = (opcode_w != `OP_FSUB); // float: FSUB, FMUL, FCVTWS, FcLASS
+    assign isreg_b_w = ((opcode_w != `OP_FSUB) && (opcode_w != `OP_FSW)); // float: FSUB, FMUL, fsw
+    assign doWrite_w = (state_r == S_WB) & (~is_s_type) & (~is_b_type) & (~is_invalid_w) & (opcode_w != `OP_EOF);
+    assign isreg_write_w = ~((funct7_w == `FUNCT7_FSUB) | (funct7_w == `FUNCT7_FMUL) | (opcode_w == `OP_FLW)); // store to float if FSUB, FMUL, FLW
 
     reg_file u_reg_file(
         .i_clk(i_clk),
@@ -147,7 +149,6 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     assign data_b_forALU_w = ((is_r_type | is_b_type) ? data_b_fromReg_w : imm_w); 
     // R, B type: data_b_from_reg, I, S, U type: imm
 
-    // 1005 TODO: FLW
     always @ (*) begin
         case (opcode_w)
             `OP_ADDI    :   alu_op_r = `ALU_ADD;
@@ -155,6 +156,10 @@ module core #( // DO NOT MODIFY INTERFACE!!!
                                         (funct3_w == `FUNCT3_SLT) ? `ALU_SLT : `ALU_SRL); // SUB, SLT, SRL have same opcode
             `OP_SW      :   alu_op_r = `ALU_ADD;
             `OP_LW      :   alu_op_r = `ALU_ADD;
+            `OP_FLW     :   alu_op_r = `ALU_ADD;
+            `OP_FSUB    :   alu_op_r = ((funct7_w == `FUNCT7_FSUB)   ? `ALU_FSUB :
+                                        (funct7_w == `FUNCT7_FMUL)   ? `ALU_FMUL :
+                                        (funct7_w == `FUNCT7_FCVTWS) ? `ALU_FCVTWS : `ALU_FCLASS);
             `OP_AUIPC   :   alu_op_r = `ALU_ADD;
             default     :   alu_op_r = `ALU_ADD;
 
@@ -172,8 +177,8 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     // is calculated saved data MEM address valid ? (4096 ~ 8191)
     assign is_invalid_addr_w = (is_s_type | is_load_op) & ~((32'd4096 <= alu_o_data_w) & (alu_o_data_w <= 32'd8191));
 
-    // reg write is dependent on ALU
-    assign writeData_w = alu_o_data_w;
+    // reg write is dependent on ALU, loaded from MEM (load op)
+    assign writeData_w = (is_load_op) ? i_rdata : alu_o_data_w;
 
 // ================== output handling 2 ============================
 
