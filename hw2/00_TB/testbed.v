@@ -29,6 +29,11 @@
 	`define DATA "../00_TB/PATTERN/p3/data.dat"
 	`define STAT "../00_TB/PATTERN/p3/status.dat"
 	`define STAT_LEN 510
+`elsif p4
+	`define INST "../00_TB/PATTERN/p4/inst.dat"
+	`define DATA "../00_TB/PATTERN/p4/data.dat"
+	`define STAT "../00_TB/PATTERN/p4/status.dat"
+	`define STAT_LEN 11
 `else
 	`define INST "../00_TB/PATTERN/p0/inst.dat"
 	`define DATA "../00_TB/PATTERN/p0/data.dat"
