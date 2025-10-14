@@ -70,7 +70,7 @@ module core #( // DO NOT MODIFY INTERFACE!!!
     assign is_load_op = (opcode_w == `OP_LW) | (opcode_w == `OP_FLW);
     assign is_eof = (opcode_w == `OP_EOF);
 
-    assign imm_w = (is_i_type ? { {20{i_rdata[31]}}, i_rdata[31:20] } : (
+    assign imm_w = (is_i_type ? { {20{i_rdata[31]}}, i_rdata[31:20] } : ( // TODO!!!!!!!!!!!
                     is_s_type ? { {20{i_rdata[31]}}, i_rdata[31:25], i_rdata[11:7] } : (
                     is_b_type ? { {19{i_rdata[31]}}, i_rdata[31], i_rdata[7], i_rdata[30:25], i_rdata[11:8], 1'b0 } : // B-type is implictly 2-bit aligned
                     { i_rdata[31:12], {12{1'b0}} } // U type: imm << 12 (no overflow considered)
@@ -165,7 +165,7 @@ module core #( // DO NOT MODIFY INTERFACE!!!
  
     assign data_a_forALU_w = ((is_u_type | opcode_w == `OP_JALR) ? pc_forALU_r : data_a_fromReg_w); // r1 except for U type
     assign data_b_forALU_w = ((is_r_type | is_b_type) ? data_b_fromReg_w : 
-                                ((opcode_w == `OP_JALR) ? 32'd4 : imm_w)); 
+                                ((opcode_w == `OP_JALR) ? 32'd4 : imm_w));  
 
     assign pc_next =    (opcode_w == `OP_JALR)               ? (data_a_fromReg_w + imm_w) & (~32'b1) : 
                         (is_b_type && alu_o_data_w == 32'b1) ? pc_r + imm_w : 
@@ -233,6 +233,7 @@ module core #( // DO NOT MODIFY INTERFACE!!!
             o_addr_r <= 0;
             o_wdata_r <= 0;
             pc_r <= 0;
+            pc_forALU_r <= 0;
         end
         else if (state_next == S_IF) begin
             // fetch instruction from inst mem (0~4095)

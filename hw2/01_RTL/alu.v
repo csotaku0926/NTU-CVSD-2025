@@ -52,7 +52,7 @@ module alu #(
     reg     [F_TMP_W-1:0]             fa_tmp_r, fb_tmp_r;
     reg     [F_TMP_W-1:0]             f_res_tmp_r;
     reg                               f_res_sign_r;
-    reg     [1:0]                     fa_prepend_bits, fb_prepend_bits;
+    wire     [1:0]                     fa_prepend_bits, fb_prepend_bits;
     wire    [F_EXPO_W -1:0]           f_nml_expo_a_w, f_nml_expo_b_w;
     
     // subnormal handling
@@ -66,8 +66,8 @@ module alu #(
     assign fb_ext_w = { fb_prepend_bits, f_mant_b_w, {(F_TMP_W - F_MANT_W - 2){1'b0}} };
     assign fb_ext2_w = (f_nml_expo_b_w < f_nml_expo_a_w) ? fb_ext_w >> (f_nml_expo_a_w - f_nml_expo_b_w) : fb_ext_w;
     // note expo are unsigned
-    assign f_res_expo_w = (i_op == `ALU_FSUB) ? ((f_nml_expo_a_w > f_nml_expo_b_w) ? f_nml_expo_a_w : f_nml_expo_b_w) // FSUB
-                            : (f_nml_expo_a_w + f_nml_expo_b_w - 8'd127); // FMUL
+    assign f_res_expo_w = (i_op == `ALU_FSUB) ? ((f_nml_expo_a_w > f_nml_expo_b_w) ? {1'b0, f_nml_expo_a_w} : {1'b0, f_nml_expo_b_w}) // FSUB
+                            : ({1'b0, f_nml_expo_a_w} + {1'b0, f_nml_expo_b_w} - 9'd127); // FMUL
 
 // ======================= FP mult ===================
     reg     [F_MANT_W+1:0]                  fmul_a_mant_r, fmul_b_mant_r;
@@ -79,6 +79,7 @@ module alu #(
 // FP fcvtws
     reg     [DATA_WIDTH+F_MANT_W-1:0]       fcvtws_tmp_r;
     reg     [DATA_WIDTH+F_MANT_W-1:0]       fcvtws_shifted_r;  
+    reg     [DATA_WIDTH-1:0]                o_tmp_r;
 
     
     always @ (*) begin
@@ -154,7 +155,7 @@ module alu #(
                                     ((fa_ext2_w > fb_ext2_w) ? f_sign_a_w : ~f_sign_b_w);
 
                     // rounding and detect invalid
-                    {o_overflow_r, o_data_r} = round2NE(f_res_tmp_r, f_res_expo_w, f_res_sign_r);
+                    {o_overflow_r, o_data_r} = round2NE(f_res_tmp_r, f_res_expo_w[7:0], f_res_sign_r);
                 end
             end
 
@@ -168,7 +169,7 @@ module alu #(
                     fmul_mant_res_r = {23'b0, fa_prepend_bits, f_mant_a_w} * {23'b0, fb_prepend_bits, f_mant_b_w};
                     f_res_sign_r = f_sign_a_w ^ f_sign_b_w;
                     
-                    {o_overflow_r, o_data_r} = MULround2NE(fmul_mant_res_r, f_res_expo_w, f_res_sign_r,
+                    {o_overflow_r, o_data_r} = MULround2NE(fmul_mant_res_r, f_res_expo_w[7:0], f_res_sign_r,
                                                             f_nml_expo_a_w, f_nml_expo_b_w);
                     
                     // underflow: < 1.0 * 2^-126 (subnormal counts) (exclude zero!)
@@ -200,8 +201,8 @@ module alu #(
 
                     do_round = (guard_r & round_r) | (sticky_r & round_r);
 
-                    o_data_r = fcvtws_shifted_r[F_MANT_W+DATA_WIDTH-1 : F_MANT_W] + do_round;
-                    o_data_r = (f_sign_a_w) ? ~(o_data_r) + 1 : o_data_r;
+                    o_tmp_r = fcvtws_shifted_r[F_MANT_W+DATA_WIDTH-1 : F_MANT_W] + do_round;
+                    o_data_r = (f_sign_a_w) ? ~(o_tmp_r) + 1 : o_tmp_r;
                     // note negative 100..0 is valid
                     o_overflow_r = (f_expo_a_w > 8'd157) & ~(f_sign_a_w & ( o_data_r == { 1'b1, {(DATA_WIDTH-1){1'b0}} })); 
                 end
@@ -239,6 +240,7 @@ module alu #(
         reg   [8:0]                      cmp_expo;    // determine overflow or not
         reg                              res_sign;
         reg                              o_invalid; // overflow or underflow
+        reg                             do_round;
 
         begin
             // 1.1110 (2) + 0.1111 (1+1) = 10.110|1 (2)
@@ -253,10 +255,6 @@ module alu #(
                     MSB_i = i;
                 end
             end
-
-            // if mant == 0
-            // if (MSB_found_r == 0)   
-            res_expo = (MSB_found_r == 1) ? i_expo + 1 - MSB_i : 0 ;
             
             // i_data << MSB_i => normal
             
@@ -274,10 +272,13 @@ module alu #(
 
             // underflow: expo < 1, overflow: expo > 254
             cmp_expo = {1'b0, i_expo} + 1 - {1'b0, MSB_i};
-            o_invalid = ((i_expo < MSB_i) & (BBG_r != 0)) | 
-                        (cmp_expo > 9'd254) | 
-                        ((BBG_r == {(F_MANT_W){1'b1}} ) && do_round );
+            o_invalid = ((i_expo < MSB_i) & (MSB_found_r != 0)) | 
+                        (cmp_expo > 9'd254) |
+                        ((cmp_expo == 9'd254) & (BBG_r == {F_MANT_W{1'b1}}) & (round_r | sticky_r));
 
+            // is no MSB found, indicates 0
+            // need to add one more expo after round up, if mant == 11..11
+            res_expo = (MSB_found_r == 1) ? i_expo + 1 - MSB_i + (BBG_r == {F_MANT_W{1'b1}} & do_round) : 0 ;
             // round 2 even
             BBG_r = BBG_r + do_round;
 
@@ -325,7 +326,6 @@ module alu #(
             // G: LSB of result
             // R: 1st bit removed
             i_data = i_data << (expo_shift + 1);
-            res_expo = (MSB_found_r) ? i_expo + (8'd1 - expo_shift) : 0;
 
             {BBG_r, round_r, remain_r} = i_data;
             guard_r = BBG_r[0];
@@ -339,9 +339,13 @@ module alu #(
             // underflow: expo < 1, overflow: expo > 254
             // TODO: add one expo if round up to carry 
             fmul_unsigned_expo = {1'b0, f_nml_expo_a_w} + {1'b0, f_nml_expo_b_w} + (9'd1 - expo_shift);
-            o_invalid =  (({1'b0, f_nml_expo_a_w} + {1'b0, f_nml_expo_b_w} < expo_shift) & ~((res_expo == 0) & (BBG_r == 0)))      // underflow
-                            | (fmul_unsigned_expo > 9'd381);                    // overflow: >= 1.0 * 2^128
-            
+            // is no MSB found, indicates 0
+            // need to add one more expo after round up
+            res_expo = (MSB_found_r) ? i_expo + (8'd1 - expo_shift) + (BBG_r == {F_MANT_W{1'b1}} & do_round) : 0;
+            // underflow: < 1.0 * 2^-126
+            o_invalid = (({1'b0, f_nml_expo_a_w} + {1'b0, f_nml_expo_b_w} + 9'd1 < expo_shift + 9'd128) & ~((res_expo == 0) & (BBG_r == 0)))      
+                        | (fmul_unsigned_expo > 9'd381)
+                        | ((fmul_unsigned_expo == 9'd381) & (BBG_r == {F_MANT_W{1'b1}}) & (round_r | sticky_r));      // overflow: > 1.11.1 * 2^127
             BBG_r = BBG_r + do_round;
 
             // pos 0 if ans is 0
