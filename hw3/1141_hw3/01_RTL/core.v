@@ -74,24 +74,24 @@ module core (                       //Don't modify interface
 	reg  	[4095:0] img_lsb_r;
 	reg     [12:0]	img_cnt_r;
 	wire    [12:0]  img_idx;
-// testing
+	// wire   	[7:0]   test_FIRST_r;
 	reg  			o_in_ready_r;
 	integer 						i;
+
+	// assign test_FIRST_r = img_r[138];
 
 	assign o_in_ready = o_in_ready_r;
 	assign INIMG_end = (img_cnt_r == 13'd4096) & (~i_in_valid);
 	// index mapping: 2 * 68 + (i // 64) * 68 + 2 + (i % 64)
-	assign img_idx = ((img_cnt_r >> 6) + 2) * (IMG_W + 4) + 2 + (img_cnt_r & 5'b11111);
+	assign img_idx = ((img_cnt_r >> 6) + 2) * (IMG_W + 4) + 2 + (img_cnt_r & 6'b111111);
 
 	always @ (posedge i_clk or negedge i_rst_n) begin
 		if (~i_rst_n) begin
 			o_in_ready_r <= 0;
 			// img
 			img_cnt_r <= 0;
-			for (i=0; i<IMG_SIZE; i=i+1) begin 
-				img_r[i] <= 8'b0;
-				img_lsb_r[i] <= 0;
-			end
+			for (i=0; i<IMG_SIZE; i=i+1) 	img_r[i] <= 8'b0;
+			for (i=0; i<4096; i=i+1) img_lsb_r[i] <= 0;
 		end
 
 		else begin
@@ -233,40 +233,50 @@ module core (                       //Don't modify interface
 	end
 
 // =============== State 2: find target 128-C barcode & output param && State 4: output convolution ==================================
-	reg   	[12:0]		conv_cnt_r;
-	wire  	[12:0]		conv_idx_w; 
+	reg   	[12:0]		conv_cnt_r, conv_i_r;
+	wire  	[12:0]		conv_idx0_w, conv_idx1_w, conv_idx2_w, conv_idx3_w; 
 	wire  	[71:0]		conv_in0_img_w, conv_in1_img_w, conv_in2_img_w, conv_in3_img_w;
 	wire    [71:0]		conv_in_weight_w;
 
-	assign conv_in_weight_w = weight_r[0:8];
-	// index mapping: 2 * 68 + (i // 64) * 68 + 2 + (i % 64)
-	assign conv_idx_w = ((conv_cnt_r >> 6) + 2) * (IMG_W + 4) + 2 + (conv_cnt_r & 5'b11111);
+	assign conv_in_weight_w = { 
+		weight_r[0], weight_r[1], weight_r[2], 
+		weight_r[3], weight_r[4], weight_r[5], 
+		weight_r[6], weight_r[7], weight_r[8]
+	};
+	// index mapping: [2 + (i // 64)] * 68 + 2 + (i % 64) --> 138 ~ 138 + 63, 138 + 68
+	assign conv_idx0_w = (((conv_cnt_r) >> 6) + 2) * (IMG_W + 4) + 2 + (conv_cnt_r & 6'b111111);
+	assign conv_idx1_w = (((conv_cnt_r + 1 * stride_sz_r) >> 6) + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 1 * stride_sz_r) & 6'b111111);
+	assign conv_idx2_w = (((conv_cnt_r + 2 * stride_sz_r) >> 6) + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 2 * stride_sz_r) & 6'b111111);
+	assign conv_idx3_w = (((conv_cnt_r + 3 * stride_sz_r) >> 6) + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 3 * stride_sz_r) & 6'b111111);
+
 	// j+(-68-1)*D, j-68*D,
 	// j-D, j, j+D
 	assign conv_in0_img_w = {
-		img_r[conv_idx_w - 69 * dilation_sz_r], img_r[conv_idx_w - 68 * dilation_sz_r], img_r[conv_idx_w - 67 * dilation_sz_r],
-		img_r[conv_idx_w -  1 * dilation_sz_r], img_r[conv_idx_w], 						img_r[conv_idx_w + 1 * dilation_sz_r],
-		img_r[conv_idx_w + 67 * dilation_sz_r], img_r[conv_idx_w + 68 * dilation_sz_r], img_r[conv_idx_w + 69 * dilation_sz_r],
+		img_r[conv_idx0_w - 69 * dilation_sz_r], img_r[conv_idx0_w - 68 * dilation_sz_r], img_r[conv_idx0_w - 67 * dilation_sz_r],
+		img_r[conv_idx0_w -  1 * dilation_sz_r], img_r[conv_idx0_w], 						img_r[conv_idx0_w + 1 * dilation_sz_r],
+		img_r[conv_idx0_w + 67 * dilation_sz_r], img_r[conv_idx0_w + 68 * dilation_sz_r], img_r[conv_idx0_w + 69 * dilation_sz_r]
 	};
 	assign conv_in1_img_w = {
-		img_r[conv_idx_w + 1 * stride_sz_r - 69 * dilation_sz_r], img_r[conv_idx_w + 1 * stride_sz_r - 68 * dilation_sz_r], img_r[conv_idx_w + 1 * stride_sz_r - 67 * dilation_sz_r],
-		img_r[conv_idx_w + 1 * stride_sz_r -  1 * dilation_sz_r], img_r[conv_idx_w + 1 * stride_sz_r], 						img_r[conv_idx_w + 1 * stride_sz_r + 1 * dilation_sz_r],
-		img_r[conv_idx_w + 1 * stride_sz_r + 67 * dilation_sz_r], img_r[conv_idx_w + 1 * stride_sz_r + 68 * dilation_sz_r], img_r[conv_idx_w + 1 * stride_sz_r + 69 * dilation_sz_r],
+		img_r[conv_idx1_w - 69 * dilation_sz_r], img_r[conv_idx1_w - 68 * dilation_sz_r], img_r[conv_idx1_w - 67 * dilation_sz_r],
+		img_r[conv_idx1_w -  1 * dilation_sz_r], img_r[conv_idx1_w], 						img_r[conv_idx1_w + 1 * dilation_sz_r],
+		img_r[conv_idx1_w + 67 * dilation_sz_r], img_r[conv_idx1_w + 68 * dilation_sz_r], img_r[conv_idx1_w + 69 * dilation_sz_r]
 	};
 
 	assign conv_in2_img_w = {
-		img_r[conv_idx_w + 2 * stride_sz_r - 69 * dilation_sz_r], img_r[conv_idx_w + 2 * stride_sz_r - 68 * dilation_sz_r], img_r[conv_idx_w + 2 * stride_sz_r - 67 * dilation_sz_r],
-		img_r[conv_idx_w + 2 * stride_sz_r -  1 * dilation_sz_r], img_r[conv_idx_w + 2 * stride_sz_r], 						img_r[conv_idx_w + 2 * stride_sz_r + 1 * dilation_sz_r],
-		img_r[conv_idx_w + 2 * stride_sz_r + 67 * dilation_sz_r], img_r[conv_idx_w + 2 * stride_sz_r + 68 * dilation_sz_r], img_r[conv_idx_w + 2 * stride_sz_r + 69 * dilation_sz_r],
+		img_r[conv_idx2_w - 69 * dilation_sz_r], img_r[conv_idx2_w - 68 * dilation_sz_r], img_r[conv_idx2_w - 67 * dilation_sz_r],
+		img_r[conv_idx2_w -  1 * dilation_sz_r], img_r[conv_idx2_w], 						img_r[conv_idx2_w + 1 * dilation_sz_r],
+		img_r[conv_idx2_w + 67 * dilation_sz_r], img_r[conv_idx2_w + 68 * dilation_sz_r], img_r[conv_idx2_w + 69 * dilation_sz_r]
 	};
 
 	assign conv_in3_img_w = {
-		img_r[conv_idx_w + 3 * stride_sz_r - 69 * dilation_sz_r], img_r[conv_idx_w + 3 * stride_sz_r - 68 * dilation_sz_r], img_r[conv_idx_w + 3 * stride_sz_r - 67 * dilation_sz_r],
-		img_r[conv_idx_w + 3 * stride_sz_r -  1 * dilation_sz_r], img_r[conv_idx_w + 3 * stride_sz_r], 						img_r[conv_idx_w + 3 * stride_sz_r + 1 * dilation_sz_r],
-		img_r[conv_idx_w + 3 * stride_sz_r + 67 * dilation_sz_r], img_r[conv_idx_w + 3 * stride_sz_r + 68 * dilation_sz_r], img_r[conv_idx_w + 3 * stride_sz_r + 69 * dilation_sz_r],
+		img_r[conv_idx3_w - 69 * dilation_sz_r], img_r[conv_idx3_w - 68 * dilation_sz_r], img_r[conv_idx3_w - 67 * dilation_sz_r],
+		img_r[conv_idx3_w -  1 * dilation_sz_r], img_r[conv_idx3_w], 						img_r[conv_idx3_w + 1 * dilation_sz_r],
+		img_r[conv_idx3_w + 67 * dilation_sz_r], img_r[conv_idx3_w + 68 * dilation_sz_r], img_r[conv_idx3_w + 69 * dilation_sz_r]
 	};
 	
-	assign OUTCONV_end = (stride_sz_r == 1) ? (conv_cnt_r >= 32) : (conv_cnt_r >= 64);
+	assign OUTCONV_end = (stride_sz_r == 1) ? (conv_i_r >= 4096) : (conv_i_r >= 1024);
+
+	reg [36:0] RES0_r, RES1_r, RES2_r, RES3_r;
 
 	always @ (posedge i_clk or negedge i_rst_n) begin
 		if (~i_rst_n) begin
@@ -279,11 +289,12 @@ module core (                       //Don't modify interface
 			o_out_data3_r <= 0;
 			o_out_data4_r <= 0;
 
-			o_out_addr1_r <= 0;
-			o_out_addr2_r <= 0;
-			o_out_addr3_r <= 0;
-			o_out_addr4_r <= 0;
+			o_out_addr1_r <= 1;
+			o_out_addr2_r <= 1;
+			o_out_addr3_r <= 1;
+			o_out_addr4_r <= 1;
 
+			conv_i_r <= 0;
 			conv_cnt_r <= 0;
 		end
 		else if (state_next == S_OUTPARAM) begin
@@ -298,7 +309,23 @@ module core (                       //Don't modify interface
 			o_out_data2_r <= conv1byte(conv_in1_img_w, conv_in_weight_w);
 			o_out_data3_r <= conv1byte(conv_in2_img_w, conv_in_weight_w);
 			o_out_data4_r <= conv1byte(conv_in3_img_w, conv_in_weight_w);
+
+			// debug
+			RES0_r <= check_conv1byte(conv_in0_img_w, conv_in_weight_w);
+			RES1_r <= check_conv1byte(conv_in1_img_w, conv_in_weight_w);
+			RES2_r <= check_conv1byte(conv_in2_img_w, conv_in_weight_w);
+			RES3_r <= check_conv1byte(conv_in3_img_w, conv_in_weight_w);
+
+
 			conv_cnt_r <= conv_cnt_r + (stride_sz_r << 2); // 4 * stride
+
+			// assign output addr
+			o_out_addr1_r <= conv_i_r ;
+			o_out_addr2_r <= conv_i_r + 1;
+			o_out_addr3_r <= conv_i_r + 2;
+			o_out_addr4_r <= conv_i_r + 3;
+
+			conv_i_r <= conv_i_r + 4;
 		end
 	end
 
@@ -308,29 +335,61 @@ module core (                       //Don't modify interface
 		input [ 71: 0]		i_weight;
 
 		reg [7:0]			img_i_r, weight_i_r, us_weight_i_r;
-		reg [20:0]				tmp_r, sum_r; // 8*2+log(9) = 20
+		reg [36:0]				tmp_r, sum_r; // (signed) treat i_img as 7 bit integer, 7 bit fraction --> 16 + 16 + log(9) + 1 = 37
 		reg  				do_round;
 		integer i;
 
 		begin
 			tmp_r = 0;
 			sum_r = 0;
-			for (i=0; i<9 i=i+1) begin // K=3 in this assignment
-				img_i_r = (i_img >> (8 * i)) & 8'b1111_1111;
-				weight_i_r = (i_weight >> (8 * i)) & 8'b1111_1111;
-				tmp_r = $signed({4'b0, img_i_r, 8'b0}) * $signed({ {12{weight_i_r[7]}}, weight_i_r});
+			for (i=0; i<72; i=i+8) begin // K=3 in this assignment
+				img_i_r = (i_img >> i) & 8'b1111_1111;
+				weight_i_r = (i_weight >> i) & 8'b1111_1111;
+				tmp_r = $signed({21'b0, img_i_r, 7'b0}) * $signed({ {29{weight_i_r[7]}}, weight_i_r});
 				sum_r = sum_r + tmp_r;
 			end
 
-			// round to nearest
-			do_round = (~sum[20] & sum_r[7]) | (sum[20] & ~sum[7] & (sum[7:0] > 0));
-			sum_r = (do_round) ? sum_r + 21'b01_0000_0000 : sum_r;
+			// round to nearest ([36]: signed, [30:15] --> integer, [13:0] --> fraction)
+			do_round = (~sum_r[36] & sum_r[13]) | (sum_r[36] & ~sum_r[13] & (sum_r[13:0] > 0));
+			sum_r = (do_round) ? sum_r + 37'b0100_0000_0000_0000 : sum_r;
 
-			// clamp to [0, 255] ([20]: signed, [15:8] --> integer, [7:0] --> fraction)
-			conv1byte = (sum_r[20] == 1) ? 0 : ( // negative
-					(sum_r[19:16] > 0) ? 8'd255 : // overflow 255
-					sum_r[15:8]
+			// clamp to [0, 255] 
+			conv1byte = (sum_r[36] == 1) ? 0 : ( // negative
+					(sum_r[35:22] > 0) ? 8'd255 : // overflow 255
+					sum_r[21:14]
 			);
+		end 
+	endfunction
+
+
+	function automatic [ 36: 0] check_conv1byte;
+		input [ 71: 0] 		i_img; // 9 8-bit input
+		input [ 71: 0]		i_weight;
+
+		reg [7:0]			img_i_r, weight_i_r, us_weight_i_r;
+		reg [36:0]				tmp_r, sum_r; // (signed) treat i_img as 7 bit integer, 7 bit fraction --> 16 + 16 + log(9) + 1 = 37
+		reg  				do_round;
+		integer i;
+
+		begin
+			tmp_r = 0;
+			sum_r = 0;
+			for (i=0; i<72; i=i+8) begin // K=3 in this assignment
+				img_i_r = (i_img >> i) & 8'b1111_1111;
+				weight_i_r = (i_weight >> i) & 8'b1111_1111;
+				tmp_r = $signed({22'b0, img_i_r, 7'b0}) * $signed({ {29{weight_i_r[7]}}, weight_i_r});
+				sum_r = sum_r + tmp_r;
+			end
+
+			// round to nearest ([36]: signed, [30:15] --> integer, [13:0] --> fraction)
+			do_round = (~sum_r[36] & sum_r[13]) | (sum_r[36] & ~sum_r[13] & (sum_r[13:0] > 0));
+			check_conv1byte = (do_round) ? sum_r + 37'b0100_0000_0000_0000 : sum_r;
+
+			// clamp to [0, 255] 
+			// conv1byte = (sum_r[36] == 1) ? 0 : ( // negative
+			// 		(sum_r[35:22] > 0) ? 8'd255 : // overflow 255
+			// 		sum_r[21:14]
+			// );
 		end 
 	endfunction
 
