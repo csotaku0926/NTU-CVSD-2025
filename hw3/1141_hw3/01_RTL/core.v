@@ -74,7 +74,7 @@ module core (                       //Don't modify interface
 	reg  	[4095:0] img_lsb_r;
 	reg     [12:0]	img_cnt_r;
 	wire    [12:0]  img_idx;
-
+// testing
 	reg  			o_in_ready_r;
 	integer 						i;
 
