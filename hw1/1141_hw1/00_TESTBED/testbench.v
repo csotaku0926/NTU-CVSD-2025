@@ -77,6 +77,36 @@
     `define ODATA  "../00_TESTBED/pattern/INST9_O.dat"
     `define SEQ_LEN 60
     `define PAT_LEN 40
+`elsif IH0
+    `define VDATA  "../00_TESTBED/pattern/VALID_H.dat"
+    `define IDATA  "../00_TESTBED/pattern/INST_H0_I.dat"
+    `define ODATA  "../00_TESTBED/pattern/INST_H0_O.dat"
+    `define SEQ_LEN 250
+    `define PAT_LEN 200
+`elsif IH1
+    `define VDATA  "../00_TESTBED/pattern/VALID_H.dat"
+    `define IDATA  "../00_TESTBED/pattern/INST_H1_I.dat"
+    `define ODATA  "../00_TESTBED/pattern/INST_H1_O.dat"
+    `define SEQ_LEN 250
+    `define PAT_LEN 200
+`elsif IH2
+    `define VDATA  "../00_TESTBED/pattern/VALID_H.dat"
+    `define IDATA  "../00_TESTBED/pattern/INST_H2_I.dat"
+    `define ODATA  "../00_TESTBED/pattern/INST_H2_O.dat"
+    `define SEQ_LEN 250
+    `define PAT_LEN 200
+`elsif IH3
+    `define VDATA  "../00_TESTBED/pattern/VALID_H.dat"
+    `define IDATA  "../00_TESTBED/pattern/INST_H3_I.dat"
+    `define ODATA  "../00_TESTBED/pattern/INST_H3_O.dat"
+    `define SEQ_LEN 250
+    `define PAT_LEN 200
+`elsif IH4
+    `define VDATA  "../00_TESTBED/pattern/VALID_H.dat"
+    `define IDATA  "../00_TESTBED/pattern/INST_H4_I.dat"
+    `define ODATA  "../00_TESTBED/pattern/INST_H4_O.dat"
+    `define SEQ_LEN 250
+    `define PAT_LEN 200
 `else
     `define VDATA  "../00_TESTBED/pattern/VALID.dat"
     `define IDATA  "../00_TESTBED/pattern/INST0_I.dat"
