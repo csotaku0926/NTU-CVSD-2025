@@ -244,10 +244,10 @@ module core (                       //Don't modify interface
 		weight_r[6], weight_r[7], weight_r[8]
 	};
 	// index mapping: [2 + (i // 64)] * 68 + 2 + (i % 64) --> 138 ~ 138 + 63, 138 + 68
-	assign conv_idx0_w = (((conv_cnt_r) >> 6) + 2) * (IMG_W + 4) + 2 + (conv_cnt_r & 6'b111111);
-	assign conv_idx1_w = (((conv_cnt_r + 1 * stride_sz_r) >> 6) + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 1 * stride_sz_r) & 6'b111111);
-	assign conv_idx2_w = (((conv_cnt_r + 2 * stride_sz_r) >> 6) + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 2 * stride_sz_r) & 6'b111111);
-	assign conv_idx3_w = (((conv_cnt_r + 3 * stride_sz_r) >> 6) + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 3 * stride_sz_r) & 6'b111111);
+	assign conv_idx0_w = (((conv_cnt_r) >> 6) * stride_sz_r + 2) * (IMG_W + 4) + 2 + (conv_cnt_r & 6'b111111);
+	assign conv_idx1_w = (((conv_cnt_r + 1 * stride_sz_r) >> 6) * stride_sz_r + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 1 * stride_sz_r) & 6'b111111);
+	assign conv_idx2_w = (((conv_cnt_r + 2 * stride_sz_r) >> 6) * stride_sz_r + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 2 * stride_sz_r) & 6'b111111);
+	assign conv_idx3_w = (((conv_cnt_r + 3 * stride_sz_r) >> 6) * stride_sz_r + 2) * (IMG_W + 4) + 2 + ((conv_cnt_r + 3 * stride_sz_r) & 6'b111111);
 
 	// j+(-68-1)*D, j-68*D,
 	// j-D, j, j+D
