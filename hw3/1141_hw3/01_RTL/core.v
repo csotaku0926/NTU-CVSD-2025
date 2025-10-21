@@ -309,6 +309,7 @@ module core (                       //Don't modify interface
 
 	wire  			isInvalid; // invalid config
 	wire  			convReady;
+	wire  			s2_odd_valid, s2_even_valid; // for conv stride = 2
 
 	reg  [7:0]	conv_out_data1_r, conv_out_data2_r, conv_out_data3_r, conv_out_data4_r; // for conv output
 
@@ -327,10 +328,10 @@ module core (                       //Don't modify interface
 			o_out_valid4_r <= 0;
 		end
 		else begin
-			o_out_valid1_r <= (state_next == S_OUTPARAM) | ((state_next == S_OUTCONV) & convReady);
-			o_out_valid2_r <= (state_next == S_OUTPARAM) | ((state_next == S_OUTCONV) & convReady);
-			o_out_valid3_r <= (state_next == S_OUTPARAM) | ((state_next == S_OUTCONV) & convReady);
-			o_out_valid4_r <= ((state_next == S_OUTCONV) & convReady); 
+			o_out_valid1_r <= (state_next == S_OUTPARAM) | ((state_next == S_OUTCONV) & convReady & s2_odd_valid);
+			o_out_valid2_r <= (state_next == S_OUTPARAM) | ((state_next == S_OUTCONV) & convReady & s2_even_valid);
+			o_out_valid3_r <= (state_next == S_OUTPARAM) | ((state_next == S_OUTCONV) & convReady & s2_odd_valid);
+			o_out_valid4_r <= ((state_next == S_OUTCONV) & convReady & s2_even_valid); 
 		end
 	end
 
@@ -501,7 +502,8 @@ module core (                       //Don't modify interface
 	reg     [12:0]	pp_iter_r; 
 	// reg  	[1:0] 	pp_cnt_r;
 
-	assign OUTCONV_end = (stride_sz_r == 1) ? (pp_iter_r > 13'd1024) : (conv_i_r >= 1024);
+	assign OUTCONV_end = (pp_iter_r > 13'd1024);//(stride_sz_r == 1) ? (pp_iter_r > 13'd1024) : (conv_i_r >= 1024);
+	// start the first valid output
 	assign convReady = (pp_iter_r > 0) & (state_r == S_OUTCONV);
 
 	always @ (posedge i_clk or negedge i_rst_n) begin
@@ -638,6 +640,9 @@ module core (                       //Don't modify interface
 
 	// output address
 
+	assign s2_odd_valid = (stride_sz_r == 1) | (~(row_w & 1) & (stride_sz_r == 2)); // only even row for stride = 2
+	assign s2_even_valid = (stride_sz_r == 1); 
+
 	always @ (posedge i_clk or negedge i_rst_n) begin
 		if (~i_rst_n) begin
 			o_out_addr1_r <= 1;
@@ -648,10 +653,13 @@ module core (                       //Don't modify interface
 		else if (state_next == S_OUTCONV) begin
 			// P1
 			// out 00_p2 = 00_P2_r + 07 + 00 + 01 (except for first round)
-			o_out_addr1_r <= (row_w << 6) + col_w;
-			o_out_addr2_r <= (row_w << 6) + col_w + 1;
-			o_out_addr3_r <= (row_w << 6) + col_w + 2;
-			o_out_addr4_r <= (row_w << 6) + col_w + 3;
+			// 02, 03 --> 32, 33 ; (row / 2) * 32
+			// 0    4    8     12
+			// |0 1| 2 3 | 4 5 | 6 7
+			o_out_addr1_r <= (stride_sz_r == 1) ? (row_w << 6) + col_w : ((row_w >> 1) << 5) + (col_w >> 1);
+			o_out_addr2_r <= (row_w << 6) + col_w + 1; // no output 2 when stride == 2
+			o_out_addr3_r <= (stride_sz_r == 1) ? (row_w << 6) + col_w + 2 : ((row_w >> 1) << 5) + (col_w >> 1) + 1;
+			o_out_addr4_r <= (row_w << 6) + col_w + 3; // no output 4 when stride == 2
 			
 		end
 	end
