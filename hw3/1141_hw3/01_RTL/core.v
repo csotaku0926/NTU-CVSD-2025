@@ -522,7 +522,7 @@ module core (                       //Don't modify interface
 	wire  [8:0]	load_row_w, load_col_w;
 	wire  [12:0] load_idx_w;
 // load SRAM  
-	assign load_row_w = (load_i_r & 6'b11_1111);
+	assign load_row_w = (load_i_r & 6'b11_1111); // dilation = 2: 0 -> 2 .. -> 62 -> 1 .. -> 63 -> 0
 	assign load_col_w = (load_i_r >> 6) << 2;
 	assign load_idx_w = (load_row_w << 6) + load_col_w; // 0 --> 64 --> 128
 

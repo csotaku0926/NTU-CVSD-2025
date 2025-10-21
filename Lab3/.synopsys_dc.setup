@@ -1,0 +1,9 @@
+set company "CIC"
+set designer "Student"
+set search_path {/home/raid7_2/course/cvsd/CBDK_IC_Contest/CIC/SynopsysDC/lib \
+    /home/raid7_2/course/cvsd/CBDK_IC_Contest/CIC/SynopsysDC/db \
+    $search_path}
+set link_library "typical.db slow.db fast.db dw_foundation.sldb"
+set target_library "typical.db slow.db fast.db"
+set symbol_library "generic.sdb"
+set synthetic_library "dw_foundation.sldb"
