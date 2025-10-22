@@ -1,0 +1,119 @@
+ 
+****************************************
+Report : area
+Design : core
+Version: U-2022.12
+Date   : Wed Oct 22 21:26:37 2025
+****************************************
+
+Library(s) Used:
+
+    slow (File: /home/raid7_2/course/cvsd/CBDK_IC_Contest/CIC/SynopsysDC/db/slow.db)
+    sram_512x8 (File: /home/raid7_2/user13/r3921a02/hw3/1141_hw3/sram_512x8/sram_512x8_slow_syn.db)
+
+Number of ports:                         5993
+Number of nets:                        172407
+Number of cells:                       164156
+Number of combinational cells:         159030
+Number of sequential cells:              4710
+Number of macros/black boxes:               8
+Number of buf/inv:                      43763
+Number of references:                     354
+
+Combinational area:            1427589.783427
+Buf/Inv area:                   218122.686722
+Noncombinational area:          186557.834850
+Macro/Black Box area:           247583.093750
+Net Interconnect area:        18816514.495758
+
+Total cell area:               1861730.712027
+Total area:                   20678245.207785
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area                  Local cell area
+                                  ---------------------  -------------------------------------- 
+Hierarchical cell                 Absolute      Percent  Combi-        Noncombi-    Black-
+                                  Total         Total    national      national     boxes        Design
+--------------------------------  ------------  -------  ------------  -----------  -----------  -------------------
+core                              1861730.7120    100.0  1207599.9548  186557.8349  247583.0938  core
+add_0_root_add_0_root_add_578_2      1646.4780      0.1     1646.4780       0.0000       0.0000  core_DW01_add_70
+add_0_root_add_0_root_add_580_2      1273.0500      0.1     1273.0500       0.0000       0.0000  core_DW01_add_123
+add_0_root_add_0_root_add_582_2      1677.0312      0.1     1677.0312       0.0000       0.0000  core_DW01_add_73
+add_0_root_add_0_root_add_584_2      1727.9532      0.1     1727.9532       0.0000       0.0000  core_DW01_add_74
+add_0_root_add_0_root_add_589_3      2610.6012      0.1     2610.6012       0.0000       0.0000  core_DW01_add_119
+add_0_root_add_0_root_add_591_3      3182.6250      0.2     3182.6250       0.0000       0.0000  core_DW01_add_83
+add_0_root_add_0_root_add_593_3      2717.5374      0.1     2717.5374       0.0000       0.0000  core_DW01_add_121
+add_0_root_add_0_root_add_595_3      2710.7478      0.1     2710.7478       0.0000       0.0000  core_DW01_add_102
+add_0_root_add_0_root_add_601_2      1912.9698      0.1     1912.9698       0.0000       0.0000  core_DW01_add_90
+add_0_root_add_0_root_add_605_2      1872.2322      0.1     1872.2322       0.0000       0.0000  core_DW01_add_85
+add_0_root_add_0_root_add_609_2      1743.2298      0.1     1743.2298       0.0000       0.0000  core_DW01_add_96
+add_0_root_add_0_root_add_613_2      1867.1400      0.1     1867.1400       0.0000       0.0000  core_DW01_add_99
+add_102                               473.5746      0.0      473.5746       0.0000       0.0000  core_DW01_inc_3
+add_1_root_add_0_root_add_578_2      1646.4780      0.1     1646.4780       0.0000       0.0000  core_DW01_add_69
+add_1_root_add_0_root_add_580_2      1765.2960      0.1     1765.2960       0.0000       0.0000  core_DW01_add_124
+add_1_root_add_0_root_add_582_2      1709.2818      0.1     1709.2818       0.0000       0.0000  core_DW01_add_71
+add_1_root_add_0_root_add_584_2      1641.3858      0.1     1641.3858       0.0000       0.0000  core_DW01_add_72
+add_1_root_add_0_root_add_589_3      1819.6128      0.1     1819.6128       0.0000       0.0000  core_DW01_add_120
+add_1_root_add_0_root_add_591_3      1677.0312      0.1     1677.0312       0.0000       0.0000  core_DW01_add_82
+add_1_root_add_0_root_add_593_3      1780.5726      0.1     1780.5726       0.0000       0.0000  core_DW01_add_122
+add_1_root_add_0_root_add_595_3      1520.8704      0.1     1520.8704       0.0000       0.0000  core_DW01_add_101
+add_1_root_add_0_root_add_601_2      1894.2984      0.1     1894.2984       0.0000       0.0000  core_DW01_add_88
+add_1_root_add_0_root_add_605_2      1853.5608      0.1     1853.5608       0.0000       0.0000  core_DW01_add_84
+add_1_root_add_0_root_add_609_2      1890.9036      0.1     1890.9036       0.0000       0.0000  core_DW01_add_92
+add_1_root_add_0_root_add_613_2      1862.0478      0.1     1862.0478       0.0000       0.0000  core_DW01_add_93
+add_2_root_add_0_root_add_589_3      3236.9418      0.2     3236.9418       0.0000       0.0000  core_DW01_add_77
+add_2_root_add_0_root_add_591_3      3111.3342      0.2     3111.3342       0.0000       0.0000  core_DW01_add_100
+add_2_root_add_0_root_add_593_3      3118.1238      0.2     3118.1238       0.0000       0.0000  core_DW01_add_79
+add_2_root_add_0_root_add_595_3      3226.7574      0.2     3226.7574       0.0000       0.0000  core_DW01_add_76
+add_494                               220.6620      0.0      220.6620       0.0000       0.0000  core_DW01_inc_1
+add_512_S2                            183.3192      0.0      183.3192       0.0000       0.0000  core_DW01_inc_0
+add_601_3                            3226.7574      0.2     3226.7574       0.0000       0.0000  core_DW01_add_140
+add_605_3                            3269.1924      0.2     3269.1924       0.0000       0.0000  core_DW01_add_137
+add_609_3                            3230.1522      0.2     3230.1522       0.0000       0.0000  core_DW01_add_143
+add_613_3                            3340.4832      0.2     3340.4832       0.0000       0.0000  core_DW01_add_109
+add_666_C601                         1050.6906      0.1     1050.6906       0.0000       0.0000  core_DW01_add_106
+add_666_C605                         1043.9010      0.1     1043.9010       0.0000       0.0000  core_DW01_add_118
+add_666_C609                         1042.2036      0.1     1042.2036       0.0000       0.0000  core_DW01_add_117
+add_666_C613                         1194.9696      0.1     1194.9696       0.0000       0.0000  core_DW01_add_168
+mult_653_C578                        3393.1026      0.2     3393.1026       0.0000       0.0000  core_DW_mult_tc_63
+mult_653_C578_2                      2883.8826      0.2     2883.8826       0.0000       0.0000  core_DW_mult_tc_71
+mult_653_C578_3                      3639.2256      0.2     3639.2256       0.0000       0.0000  core_DW_mult_tc_58
+mult_653_C580                        3420.2610      0.2     3420.2610       0.0000       0.0000  core_DW_mult_tc_102
+mult_653_C580_2                      2912.7384      0.2     2912.7384       0.0000       0.0000  core_DW_mult_tc_70
+mult_653_C580_3                      3494.9466      0.2     3494.9466       0.0000       0.0000  core_DW_mult_tc_101
+mult_653_C582                        3333.6936      0.2     3333.6936       0.0000       0.0000  core_DW_mult_tc_57
+mult_653_C582_2                      2775.2490      0.1     2775.2490       0.0000       0.0000  core_DW_mult_tc_69
+mult_653_C582_3                      3613.7646      0.2     3613.7646       0.0000       0.0000  core_DW_mult_tc_65
+mult_653_C584                        3513.6180      0.2     3513.6180       0.0000       0.0000  core_DW_mult_tc_50
+mult_653_C584_2                      3613.7646      0.2     3613.7646       0.0000       0.0000  core_DW_mult_tc_64
+mult_653_C584_3                      2868.6060      0.2     2868.6060       0.0000       0.0000  core_DW_mult_tc_59
+mult_653_C589                        4038.1146      0.2     4038.1146       0.0000       0.0000  core_DW_mult_tc_67
+mult_653_C589_2                      3408.3792      0.2     3408.3792       0.0000       0.0000  core_DW_mult_tc_100
+mult_653_C589_3                      3444.0246      0.2     3444.0246       0.0000       0.0000  core_DW_mult_tc_96
+mult_653_C591                        3674.8710      0.2     3674.8710       0.0000       0.0000  core_DW_mult_tc_53
+mult_653_C591_2                      3785.2020      0.2     3785.2020       0.0000       0.0000  core_DW_mult_tc_56
+mult_653_C591_3                      4009.2588      0.2     4009.2588       0.0000       0.0000  core_DW_mult_tc_60
+mult_653_C593                        4128.0768      0.2     4128.0768       0.0000       0.0000  core_DW_mult_tc_68
+mult_653_C593_2                      3567.9348      0.2     3567.9348       0.0000       0.0000  core_DW_mult_tc_99
+mult_653_C593_3                      3569.6322      0.2     3569.6322       0.0000       0.0000  core_DW_mult_tc_98
+mult_653_C595                        3800.4786      0.2     3800.4786       0.0000       0.0000  core_DW_mult_tc_66
+mult_653_C595_2                      3893.8356      0.2     3893.8356       0.0000       0.0000  core_DW_mult_tc_62
+mult_653_C595_3                      3598.4880      0.2     3598.4880       0.0000       0.0000  core_DW_mult_tc_81
+mult_653_C601                        5243.2686      0.3     5243.2686       0.0000       0.0000  core_DW_mult_tc_74
+mult_653_C601_2                      3898.9278      0.2     3898.9278       0.0000       0.0000  core_DW_mult_tc_84
+mult_653_C601_3                      5292.4932      0.3     5292.4932       0.0000       0.0000  core_DW_mult_tc_119
+mult_653_C605                        5082.0156      0.3     5082.0156       0.0000       0.0000  core_DW_mult_tc_118
+mult_653_C605_2                      4224.8286      0.2     4224.8286       0.0000       0.0000  core_DW_mult_tc_82
+mult_653_C605_3                      5555.5902      0.3     5555.5902       0.0000       0.0000  core_DW_mult_tc_117
+mult_653_C609                        4995.4482      0.3     4995.4482       0.0000       0.0000  core_DW_mult_tc_123
+mult_653_C609_2                      3914.2044      0.2     3914.2044       0.0000       0.0000  core_DW_mult_tc_83
+mult_653_C609_3                      5704.9614      0.3     5704.9614       0.0000       0.0000  core_DW_mult_tc_124
+mult_653_C613                        5275.5192      0.3     5275.5192       0.0000       0.0000  core_DW_mult_tc_112
+mult_653_C613_2                      5144.8194      0.3     5144.8194       0.0000       0.0000  core_DW_mult_tc_113
+mult_653_C613_3                      4304.6064      0.2     4304.6064       0.0000       0.0000  core_DW_mult_tc_80
+--------------------------------  ------------  -------  ------------  -----------  -----------  -------------------
+Total                                                    1427589.7834  186557.8349  247583.0938
+
+1

@@ -1,0 +1,480 @@
+Information: Updating design information... (UID-85)
+Warning: Design 'core' contains 1 high-fanout nets. A fanout number of 1000 will be used for delay calculations involving these nets. (TIM-134)
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 5
+Design : core
+Version: U-2022.12
+Date   : Wed Oct 22 21:26:37 2025
+****************************************
+
+ # A fanout number of 1000 was used for high fanout net computations.
+
+Operating Conditions: slow   Library: slow
+Wire Load Model Mode: top
+
+  Startpoint: u_sram07 (rising edge-triggered flip-flop clocked by i_clk)
+  Endpoint: conv_out_data1_r_reg[4]
+            (rising edge-triggered flip-flop clocked by i_clk)
+  Path Group: i_clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  core               tsmc13_wl10           slow
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock i_clk (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.50       0.50
+  u_sram07/CLK (sram_512x8)                               0.00 #     0.50 r
+  u_sram07/Q[3] (sram_512x8)                              2.13       2.63 f
+  U131686/Y (AO22X2)                                      0.38       3.01 f
+  U126848/Y (CLKINVX8)                                    0.12       3.13 r
+  U126847/Y (INVX12)                                      0.08       3.21 f
+  mult_653_C601/a[10] (core_DW_mult_tc_74)                0.00       3.21 f
+  mult_653_C601/U422/Y (XNOR2X4)                          0.14       3.35 f
+  mult_653_C601/U471/Y (OAI22X2)                          0.28       3.64 r
+  mult_653_C601/U366/S (ADDFHX4)                          0.41       4.05 f
+  mult_653_C601/U415/S (ADDFHX4)                          0.30       4.35 f
+  mult_653_C601/U342/Y (NOR2X8)                           0.12       4.47 r
+  mult_653_C601/U330/Y (OR2X6)                            0.14       4.61 r
+  mult_653_C601/U317/Y (NAND2X6)                          0.06       4.67 f
+  mult_653_C601/U509/Y (AOI21X4)                          0.15       4.81 r
+  mult_653_C601/U281/Y (INVX8)                            0.12       4.93 f
+  mult_653_C601/U399/Y (AO21X4)                           0.30       5.24 f
+  mult_653_C601/U409/Y (AOI21X4)                          0.15       5.39 r
+  mult_653_C601/U499/Y (XOR2X4)                           0.20       5.58 r
+  mult_653_C601/product[20] (core_DW_mult_tc_74)          0.00       5.58 r
+  add_1_root_add_0_root_add_601_2/A[20] (core_DW01_add_88)
+                                                          0.00       5.58 r
+  add_1_root_add_0_root_add_601_2/U226/Y (NOR2X8)         0.14       5.73 f
+  add_1_root_add_0_root_add_601_2/U171/Y (NOR2X6)         0.14       5.87 r
+  add_1_root_add_0_root_add_601_2/U181/Y (NAND2X4)        0.09       5.96 f
+  add_1_root_add_0_root_add_601_2/U199/Y (OR2X8)          0.16       6.12 f
+  add_1_root_add_0_root_add_601_2/U198/Y (NAND2X8)        0.09       6.21 r
+  add_1_root_add_0_root_add_601_2/U182/Y (INVX12)         0.06       6.27 f
+  add_1_root_add_0_root_add_601_2/U217/Y (OAI21X4)        0.12       6.39 r
+  add_1_root_add_0_root_add_601_2/U210/Y (XOR2X4)         0.19       6.59 r
+  add_1_root_add_0_root_add_601_2/SUM[23] (core_DW01_add_88)
+                                                          0.00       6.59 r
+  add_0_root_add_0_root_add_601_2/B[23] (core_DW01_add_90)
+                                                          0.00       6.59 r
+  add_0_root_add_0_root_add_601_2/U262/Y (NAND2X4)        0.18       6.76 f
+  add_0_root_add_0_root_add_601_2/U268/Y (OAI21X4)        0.17       6.94 r
+  add_0_root_add_0_root_add_601_2/U296/Y (AOI21X4)        0.08       7.01 f
+  add_0_root_add_0_root_add_601_2/U285/Y (OA21X4)         0.22       7.24 f
+  add_0_root_add_0_root_add_601_2/U199/Y (INVX20)         0.12       7.36 r
+  add_0_root_add_0_root_add_601_2/U203/Y (INVX3)          0.07       7.43 f
+  add_0_root_add_0_root_add_601_2/SUM[29] (core_DW01_add_90)
+                                                          0.00       7.43 f
+  U117700/Y (CLKAND2X8)                                   0.16       7.59 f
+  add_601_3/B[29] (core_DW01_add_140)                     0.00       7.59 f
+  add_601_3/U380/Y (NOR2X8)                               0.13       7.72 r
+  add_601_3/U381/Y (OAI21X2)                              0.13       7.85 f
+  add_601_3/U424/Y (AOI21X4)                              0.22       8.07 r
+  add_601_3/U335/Y (INVX8)                                0.13       8.20 f
+  add_601_3/U332/Y (AOI21X4)                              0.14       8.34 r
+  add_601_3/U361/Y (OAI21X4)                              0.10       8.44 f
+  add_601_3/U426/Y (XNOR2X4)                              0.18       8.63 r
+  add_601_3/SUM[31] (core_DW01_add_140)                   0.00       8.63 r
+  add_666_C601/A[31] (core_DW01_add_106)                  0.00       8.63 r
+  add_666_C601/U167/Y (NAND2X8)                           0.14       8.76 f
+  add_666_C601/U148/Y (NOR2X8)                            0.14       8.90 r
+  add_666_C601/U141/Y (NAND2X1)                           0.14       9.04 f
+  add_666_C601/U122/Y (NOR2X2)                            0.18       9.22 r
+  add_666_C601/U163/Y (XNOR2X4)                           0.18       9.40 f
+  add_666_C601/SUM[35] (core_DW01_add_106)                0.00       9.40 f
+  U118506/Y (NOR3X6)                                      0.13       9.53 r
+  U125266/Y (AND2X8)                                      0.15       9.68 r
+  U118971/Y (NAND3X8)                                     0.09       9.77 f
+  U131931/Y (NAND3X8)                                     0.19       9.96 r
+  U131894/Y (NAND2X2)                                     0.11      10.06 f
+  conv_out_data1_r_reg[4]/D (DFFHQX4)                     0.00      10.06 f
+  data arrival time                                                 10.06
+
+  clock i_clk (rise edge)                                 5.00       5.00
+  clock network delay (ideal)                             0.50       5.50
+  clock uncertainty                                      -0.10       5.40
+  conv_out_data1_r_reg[4]/CK (DFFHQX4)                    0.00       5.40 r
+  library setup time                                     -0.16       5.24
+  data required time                                                 5.24
+  --------------------------------------------------------------------------
+  data required time                                                 5.24
+  data arrival time                                                -10.06
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -4.82
+
+
+  Startpoint: u_sram03 (rising edge-triggered flip-flop clocked by i_clk)
+  Endpoint: conv_out_data3_r_reg[5]
+            (rising edge-triggered flip-flop clocked by i_clk)
+  Path Group: i_clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  core               tsmc13_wl10           slow
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock i_clk (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.50       0.50
+  u_sram03/CLK (sram_512x8)                               0.00 #     0.50 r
+  u_sram03/Q[2] (sram_512x8)                              2.12       2.62 f
+  U131872/Y (AO22X4)                                      0.28       2.90 f
+  U130335/Y (BUFX20)                                      0.16       3.06 f
+  mult_653_C609_3/a[9] (core_DW_mult_tc_124)              0.00       3.06 f
+  mult_653_C609_3/U467/Y (BUFX20)                         0.13       3.19 f
+  mult_653_C609_3/U282/Y (XOR2X4)                         0.14       3.33 f
+  mult_653_C609_3/U313/Y (OAI22X4)                        0.16       3.49 r
+  mult_653_C609_3/U312/S (ADDHX4)                         0.18       3.67 f
+  mult_653_C609_3/U515/Y (NAND2X2)                        0.15       3.82 r
+  mult_653_C609_3/U542/Y (CLKINVX1)                       0.19       4.01 f
+  mult_653_C609_3/U508/Y (AOI21X4)                        0.20       4.22 r
+  mult_653_C609_3/U327/Y (INVX2)                          0.15       4.37 f
+  mult_653_C609_3/U411/Y (XNOR2X4)                        0.18       4.55 r
+  mult_653_C609_3/product[11] (core_DW_mult_tc_124)       0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/B[11] (core_DW01_add_92)
+                                                          0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/U232/Y (NOR2X6)         0.12       4.67 f
+  add_1_root_add_0_root_add_609_2/U274/Y (OAI21X4)        0.22       4.89 r
+  add_1_root_add_0_root_add_609_2/U217/Y (INVX6)          0.10       4.99 f
+  add_1_root_add_0_root_add_609_2/U228/Y (OA21X4)         0.21       5.20 f
+  add_1_root_add_0_root_add_609_2/U227/Y (XOR2X4)         0.15       5.35 r
+  add_1_root_add_0_root_add_609_2/SUM[13] (core_DW01_add_92)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/B[13] (core_DW01_add_96)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/U262/Y (NOR2X6)         0.13       5.48 f
+  add_0_root_add_0_root_add_609_2/U259/Y (OA21X4)         0.21       5.69 f
+  add_0_root_add_0_root_add_609_2/U295/Y (OA21X4)         0.18       5.87 f
+  add_0_root_add_0_root_add_609_2/U287/Y (OAI21X4)        0.19       6.05 r
+  add_0_root_add_0_root_add_609_2/U294/Y (AOI21X4)        0.15       6.20 f
+  add_0_root_add_0_root_add_609_2/U286/Y (OAI21X4)        0.22       6.42 r
+  add_0_root_add_0_root_add_609_2/U219/Y (INVX6)          0.10       6.52 f
+  add_0_root_add_0_root_add_609_2/U282/Y (OA21X4)         0.21       6.73 f
+  add_0_root_add_0_root_add_609_2/U240/Y (XOR2X4)         0.11       6.84 r
+  add_0_root_add_0_root_add_609_2/SUM[20] (core_DW01_add_96)
+                                                          0.00       6.84 r
+  U125996/Y (AND2X8)                                      0.17       7.02 r
+  add_609_3/B[20] (core_DW01_add_143)                     0.00       7.02 r
+  add_609_3/U425/Y (OR2X8)                                0.14       7.16 r
+  add_609_3/U282/Y (NAND2X2)                              0.14       7.29 f
+  add_609_3/U336/Y (NOR2X4)                               0.13       7.43 r
+  add_609_3/U442/Y (AOI21X4)                              0.14       7.57 f
+  add_609_3/U438/Y (OAI21X4)                              0.24       7.81 r
+  add_609_3/U370/Y (INVX12)                               0.15       7.96 f
+  add_609_3/U395/Y (OR2X4)                                0.20       8.16 f
+  add_609_3/U357/Y (NAND2X6)                              0.07       8.22 r
+  add_609_3/U431/Y (XNOR2X4)                              0.13       8.35 r
+  add_609_3/SUM[32] (core_DW01_add_143)                   0.00       8.35 r
+  U117778/Y (BUFX20)                                      0.15       8.50 r
+  add_666_C609/A[32] (core_DW01_add_117)                  0.00       8.50 r
+  add_666_C609/U145/Y (NAND2X8)                           0.08       8.58 f
+  add_666_C609/U121/Y (NOR2X6)                            0.12       8.71 r
+  add_666_C609/U162/Y (NAND2X2)                           0.12       8.83 f
+  add_666_C609/U149/Y (NOR2X6)                            0.10       8.92 r
+  add_666_C609/U165/Y (XOR2X4)                            0.13       9.05 f
+  add_666_C609/SUM[35] (core_DW01_add_117)                0.00       9.05 f
+  U131918/Y (NOR3X2)                                      0.21       9.27 r
+  U129651/Y (CLKAND2X6)                                   0.20       9.47 r
+  U130485/Y (AND3X8)                                      0.16       9.62 r
+  U157785/Y (OR3X8)                                       0.19       9.81 r
+  U128119/Y (OAI211X4)                                    0.27      10.08 f
+  conv_out_data3_r_reg[5]/D (DFFHQX4)                     0.00      10.08 f
+  data arrival time                                                 10.08
+
+  clock i_clk (rise edge)                                 5.00       5.00
+  clock network delay (ideal)                             0.50       5.50
+  clock uncertainty                                      -0.10       5.40
+  conv_out_data3_r_reg[5]/CK (DFFHQX4)                    0.00       5.40 r
+  library setup time                                     -0.14       5.26
+  data required time                                                 5.26
+  --------------------------------------------------------------------------
+  data required time                                                 5.26
+  data arrival time                                                -10.08
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -4.82
+
+
+  Startpoint: u_sram03 (rising edge-triggered flip-flop clocked by i_clk)
+  Endpoint: conv_out_data3_r_reg[0]
+            (rising edge-triggered flip-flop clocked by i_clk)
+  Path Group: i_clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  core               tsmc13_wl10           slow
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock i_clk (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.50       0.50
+  u_sram03/CLK (sram_512x8)                               0.00 #     0.50 r
+  u_sram03/Q[2] (sram_512x8)                              2.12       2.62 f
+  U131872/Y (AO22X4)                                      0.28       2.90 f
+  U130335/Y (BUFX20)                                      0.16       3.06 f
+  mult_653_C609_3/a[9] (core_DW_mult_tc_124)              0.00       3.06 f
+  mult_653_C609_3/U467/Y (BUFX20)                         0.13       3.19 f
+  mult_653_C609_3/U282/Y (XOR2X4)                         0.14       3.33 f
+  mult_653_C609_3/U313/Y (OAI22X4)                        0.16       3.49 r
+  mult_653_C609_3/U312/S (ADDHX4)                         0.18       3.67 f
+  mult_653_C609_3/U515/Y (NAND2X2)                        0.15       3.82 r
+  mult_653_C609_3/U542/Y (CLKINVX1)                       0.19       4.01 f
+  mult_653_C609_3/U508/Y (AOI21X4)                        0.20       4.22 r
+  mult_653_C609_3/U327/Y (INVX2)                          0.15       4.37 f
+  mult_653_C609_3/U411/Y (XNOR2X4)                        0.18       4.55 r
+  mult_653_C609_3/product[11] (core_DW_mult_tc_124)       0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/B[11] (core_DW01_add_92)
+                                                          0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/U232/Y (NOR2X6)         0.12       4.67 f
+  add_1_root_add_0_root_add_609_2/U274/Y (OAI21X4)        0.22       4.89 r
+  add_1_root_add_0_root_add_609_2/U217/Y (INVX6)          0.10       4.99 f
+  add_1_root_add_0_root_add_609_2/U228/Y (OA21X4)         0.21       5.20 f
+  add_1_root_add_0_root_add_609_2/U227/Y (XOR2X4)         0.15       5.35 r
+  add_1_root_add_0_root_add_609_2/SUM[13] (core_DW01_add_92)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/B[13] (core_DW01_add_96)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/U262/Y (NOR2X6)         0.13       5.48 f
+  add_0_root_add_0_root_add_609_2/U259/Y (OA21X4)         0.21       5.69 f
+  add_0_root_add_0_root_add_609_2/U295/Y (OA21X4)         0.18       5.87 f
+  add_0_root_add_0_root_add_609_2/U287/Y (OAI21X4)        0.19       6.05 r
+  add_0_root_add_0_root_add_609_2/U294/Y (AOI21X4)        0.15       6.20 f
+  add_0_root_add_0_root_add_609_2/U286/Y (OAI21X4)        0.22       6.42 r
+  add_0_root_add_0_root_add_609_2/U219/Y (INVX6)          0.10       6.52 f
+  add_0_root_add_0_root_add_609_2/U282/Y (OA21X4)         0.21       6.73 f
+  add_0_root_add_0_root_add_609_2/U240/Y (XOR2X4)         0.11       6.84 r
+  add_0_root_add_0_root_add_609_2/SUM[20] (core_DW01_add_96)
+                                                          0.00       6.84 r
+  U125996/Y (AND2X8)                                      0.17       7.02 r
+  add_609_3/B[20] (core_DW01_add_143)                     0.00       7.02 r
+  add_609_3/U425/Y (OR2X8)                                0.14       7.16 r
+  add_609_3/U282/Y (NAND2X2)                              0.14       7.29 f
+  add_609_3/U336/Y (NOR2X4)                               0.13       7.43 r
+  add_609_3/U442/Y (AOI21X4)                              0.14       7.57 f
+  add_609_3/U438/Y (OAI21X4)                              0.24       7.81 r
+  add_609_3/U370/Y (INVX12)                               0.15       7.96 f
+  add_609_3/U395/Y (OR2X4)                                0.20       8.16 f
+  add_609_3/U357/Y (NAND2X6)                              0.07       8.22 r
+  add_609_3/U431/Y (XNOR2X4)                              0.13       8.35 r
+  add_609_3/SUM[32] (core_DW01_add_143)                   0.00       8.35 r
+  U117778/Y (BUFX20)                                      0.15       8.50 r
+  add_666_C609/A[32] (core_DW01_add_117)                  0.00       8.50 r
+  add_666_C609/U145/Y (NAND2X8)                           0.08       8.58 f
+  add_666_C609/U121/Y (NOR2X6)                            0.12       8.71 r
+  add_666_C609/U162/Y (NAND2X2)                           0.12       8.83 f
+  add_666_C609/U149/Y (NOR2X6)                            0.10       8.92 r
+  add_666_C609/U165/Y (XOR2X4)                            0.13       9.05 f
+  add_666_C609/SUM[35] (core_DW01_add_117)                0.00       9.05 f
+  U131918/Y (NOR3X2)                                      0.21       9.27 r
+  U129651/Y (CLKAND2X6)                                   0.20       9.47 r
+  U130485/Y (AND3X8)                                      0.16       9.62 r
+  U157785/Y (OR3X8)                                       0.19       9.81 r
+  U128492/Y (OAI211X4)                                    0.27      10.08 f
+  conv_out_data3_r_reg[0]/D (DFFHQX4)                     0.00      10.08 f
+  data arrival time                                                 10.08
+
+  clock i_clk (rise edge)                                 5.00       5.00
+  clock network delay (ideal)                             0.50       5.50
+  clock uncertainty                                      -0.10       5.40
+  conv_out_data3_r_reg[0]/CK (DFFHQX4)                    0.00       5.40 r
+  library setup time                                     -0.14       5.26
+  data required time                                                 5.26
+  --------------------------------------------------------------------------
+  data required time                                                 5.26
+  data arrival time                                                -10.08
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -4.82
+
+
+  Startpoint: u_sram03 (rising edge-triggered flip-flop clocked by i_clk)
+  Endpoint: conv_out_data3_r_reg[1]
+            (rising edge-triggered flip-flop clocked by i_clk)
+  Path Group: i_clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  core               tsmc13_wl10           slow
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock i_clk (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.50       0.50
+  u_sram03/CLK (sram_512x8)                               0.00 #     0.50 r
+  u_sram03/Q[2] (sram_512x8)                              2.12       2.62 f
+  U131872/Y (AO22X4)                                      0.28       2.90 f
+  U130335/Y (BUFX20)                                      0.16       3.06 f
+  mult_653_C609_3/a[9] (core_DW_mult_tc_124)              0.00       3.06 f
+  mult_653_C609_3/U467/Y (BUFX20)                         0.13       3.19 f
+  mult_653_C609_3/U282/Y (XOR2X4)                         0.14       3.33 f
+  mult_653_C609_3/U313/Y (OAI22X4)                        0.16       3.49 r
+  mult_653_C609_3/U312/S (ADDHX4)                         0.18       3.67 f
+  mult_653_C609_3/U515/Y (NAND2X2)                        0.15       3.82 r
+  mult_653_C609_3/U542/Y (CLKINVX1)                       0.19       4.01 f
+  mult_653_C609_3/U508/Y (AOI21X4)                        0.20       4.22 r
+  mult_653_C609_3/U327/Y (INVX2)                          0.15       4.37 f
+  mult_653_C609_3/U411/Y (XNOR2X4)                        0.18       4.55 r
+  mult_653_C609_3/product[11] (core_DW_mult_tc_124)       0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/B[11] (core_DW01_add_92)
+                                                          0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/U232/Y (NOR2X6)         0.12       4.67 f
+  add_1_root_add_0_root_add_609_2/U274/Y (OAI21X4)        0.22       4.89 r
+  add_1_root_add_0_root_add_609_2/U217/Y (INVX6)          0.10       4.99 f
+  add_1_root_add_0_root_add_609_2/U228/Y (OA21X4)         0.21       5.20 f
+  add_1_root_add_0_root_add_609_2/U227/Y (XOR2X4)         0.15       5.35 r
+  add_1_root_add_0_root_add_609_2/SUM[13] (core_DW01_add_92)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/B[13] (core_DW01_add_96)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/U262/Y (NOR2X6)         0.13       5.48 f
+  add_0_root_add_0_root_add_609_2/U259/Y (OA21X4)         0.21       5.69 f
+  add_0_root_add_0_root_add_609_2/U295/Y (OA21X4)         0.18       5.87 f
+  add_0_root_add_0_root_add_609_2/U287/Y (OAI21X4)        0.19       6.05 r
+  add_0_root_add_0_root_add_609_2/U294/Y (AOI21X4)        0.15       6.20 f
+  add_0_root_add_0_root_add_609_2/U286/Y (OAI21X4)        0.22       6.42 r
+  add_0_root_add_0_root_add_609_2/U219/Y (INVX6)          0.10       6.52 f
+  add_0_root_add_0_root_add_609_2/U282/Y (OA21X4)         0.21       6.73 f
+  add_0_root_add_0_root_add_609_2/U240/Y (XOR2X4)         0.11       6.84 r
+  add_0_root_add_0_root_add_609_2/SUM[20] (core_DW01_add_96)
+                                                          0.00       6.84 r
+  U125996/Y (AND2X8)                                      0.17       7.02 r
+  add_609_3/B[20] (core_DW01_add_143)                     0.00       7.02 r
+  add_609_3/U425/Y (OR2X8)                                0.14       7.16 r
+  add_609_3/U282/Y (NAND2X2)                              0.14       7.29 f
+  add_609_3/U336/Y (NOR2X4)                               0.13       7.43 r
+  add_609_3/U442/Y (AOI21X4)                              0.14       7.57 f
+  add_609_3/U438/Y (OAI21X4)                              0.24       7.81 r
+  add_609_3/U370/Y (INVX12)                               0.15       7.96 f
+  add_609_3/U395/Y (OR2X4)                                0.20       8.16 f
+  add_609_3/U357/Y (NAND2X6)                              0.07       8.22 r
+  add_609_3/U431/Y (XNOR2X4)                              0.13       8.35 r
+  add_609_3/SUM[32] (core_DW01_add_143)                   0.00       8.35 r
+  U117778/Y (BUFX20)                                      0.15       8.50 r
+  add_666_C609/A[32] (core_DW01_add_117)                  0.00       8.50 r
+  add_666_C609/U145/Y (NAND2X8)                           0.08       8.58 f
+  add_666_C609/U121/Y (NOR2X6)                            0.12       8.71 r
+  add_666_C609/U162/Y (NAND2X2)                           0.12       8.83 f
+  add_666_C609/U149/Y (NOR2X6)                            0.10       8.92 r
+  add_666_C609/U165/Y (XOR2X4)                            0.13       9.05 f
+  add_666_C609/SUM[35] (core_DW01_add_117)                0.00       9.05 f
+  U131918/Y (NOR3X2)                                      0.21       9.27 r
+  U129651/Y (CLKAND2X6)                                   0.20       9.47 r
+  U130485/Y (AND3X8)                                      0.16       9.62 r
+  U157785/Y (OR3X8)                                       0.19       9.81 r
+  U128491/Y (OAI211X4)                                    0.27      10.08 f
+  conv_out_data3_r_reg[1]/D (DFFHQX4)                     0.00      10.08 f
+  data arrival time                                                 10.08
+
+  clock i_clk (rise edge)                                 5.00       5.00
+  clock network delay (ideal)                             0.50       5.50
+  clock uncertainty                                      -0.10       5.40
+  conv_out_data3_r_reg[1]/CK (DFFHQX4)                    0.00       5.40 r
+  library setup time                                     -0.14       5.26
+  data required time                                                 5.26
+  --------------------------------------------------------------------------
+  data required time                                                 5.26
+  data arrival time                                                -10.08
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -4.82
+
+
+  Startpoint: u_sram03 (rising edge-triggered flip-flop clocked by i_clk)
+  Endpoint: conv_out_data3_r_reg[2]
+            (rising edge-triggered flip-flop clocked by i_clk)
+  Path Group: i_clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  core               tsmc13_wl10           slow
+
+  Point                                                   Incr       Path
+  --------------------------------------------------------------------------
+  clock i_clk (rise edge)                                 0.00       0.00
+  clock network delay (ideal)                             0.50       0.50
+  u_sram03/CLK (sram_512x8)                               0.00 #     0.50 r
+  u_sram03/Q[2] (sram_512x8)                              2.12       2.62 f
+  U131872/Y (AO22X4)                                      0.28       2.90 f
+  U130335/Y (BUFX20)                                      0.16       3.06 f
+  mult_653_C609_3/a[9] (core_DW_mult_tc_124)              0.00       3.06 f
+  mult_653_C609_3/U467/Y (BUFX20)                         0.13       3.19 f
+  mult_653_C609_3/U282/Y (XOR2X4)                         0.14       3.33 f
+  mult_653_C609_3/U313/Y (OAI22X4)                        0.16       3.49 r
+  mult_653_C609_3/U312/S (ADDHX4)                         0.18       3.67 f
+  mult_653_C609_3/U515/Y (NAND2X2)                        0.15       3.82 r
+  mult_653_C609_3/U542/Y (CLKINVX1)                       0.19       4.01 f
+  mult_653_C609_3/U508/Y (AOI21X4)                        0.20       4.22 r
+  mult_653_C609_3/U327/Y (INVX2)                          0.15       4.37 f
+  mult_653_C609_3/U411/Y (XNOR2X4)                        0.18       4.55 r
+  mult_653_C609_3/product[11] (core_DW_mult_tc_124)       0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/B[11] (core_DW01_add_92)
+                                                          0.00       4.55 r
+  add_1_root_add_0_root_add_609_2/U232/Y (NOR2X6)         0.12       4.67 f
+  add_1_root_add_0_root_add_609_2/U274/Y (OAI21X4)        0.22       4.89 r
+  add_1_root_add_0_root_add_609_2/U217/Y (INVX6)          0.10       4.99 f
+  add_1_root_add_0_root_add_609_2/U228/Y (OA21X4)         0.21       5.20 f
+  add_1_root_add_0_root_add_609_2/U227/Y (XOR2X4)         0.15       5.35 r
+  add_1_root_add_0_root_add_609_2/SUM[13] (core_DW01_add_92)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/B[13] (core_DW01_add_96)
+                                                          0.00       5.35 r
+  add_0_root_add_0_root_add_609_2/U262/Y (NOR2X6)         0.13       5.48 f
+  add_0_root_add_0_root_add_609_2/U259/Y (OA21X4)         0.21       5.69 f
+  add_0_root_add_0_root_add_609_2/U295/Y (OA21X4)         0.18       5.87 f
+  add_0_root_add_0_root_add_609_2/U287/Y (OAI21X4)        0.19       6.05 r
+  add_0_root_add_0_root_add_609_2/U294/Y (AOI21X4)        0.15       6.20 f
+  add_0_root_add_0_root_add_609_2/U286/Y (OAI21X4)        0.22       6.42 r
+  add_0_root_add_0_root_add_609_2/U219/Y (INVX6)          0.10       6.52 f
+  add_0_root_add_0_root_add_609_2/U282/Y (OA21X4)         0.21       6.73 f
+  add_0_root_add_0_root_add_609_2/U240/Y (XOR2X4)         0.11       6.84 r
+  add_0_root_add_0_root_add_609_2/SUM[20] (core_DW01_add_96)
+                                                          0.00       6.84 r
+  U125996/Y (AND2X8)                                      0.17       7.02 r
+  add_609_3/B[20] (core_DW01_add_143)                     0.00       7.02 r
+  add_609_3/U425/Y (OR2X8)                                0.14       7.16 r
+  add_609_3/U282/Y (NAND2X2)                              0.14       7.29 f
+  add_609_3/U336/Y (NOR2X4)                               0.13       7.43 r
+  add_609_3/U442/Y (AOI21X4)                              0.14       7.57 f
+  add_609_3/U438/Y (OAI21X4)                              0.24       7.81 r
+  add_609_3/U370/Y (INVX12)                               0.15       7.96 f
+  add_609_3/U395/Y (OR2X4)                                0.20       8.16 f
+  add_609_3/U357/Y (NAND2X6)                              0.07       8.22 r
+  add_609_3/U431/Y (XNOR2X4)                              0.13       8.35 r
+  add_609_3/SUM[32] (core_DW01_add_143)                   0.00       8.35 r
+  U117778/Y (BUFX20)                                      0.15       8.50 r
+  add_666_C609/A[32] (core_DW01_add_117)                  0.00       8.50 r
+  add_666_C609/U145/Y (NAND2X8)                           0.08       8.58 f
+  add_666_C609/U121/Y (NOR2X6)                            0.12       8.71 r
+  add_666_C609/U162/Y (NAND2X2)                           0.12       8.83 f
+  add_666_C609/U149/Y (NOR2X6)                            0.10       8.92 r
+  add_666_C609/U165/Y (XOR2X4)                            0.13       9.05 f
+  add_666_C609/SUM[35] (core_DW01_add_117)                0.00       9.05 f
+  U131918/Y (NOR3X2)                                      0.21       9.27 r
+  U129651/Y (CLKAND2X6)                                   0.20       9.47 r
+  U130485/Y (AND3X8)                                      0.16       9.62 r
+  U157785/Y (OR3X8)                                       0.19       9.81 r
+  U128490/Y (OAI211X4)                                    0.27      10.08 f
+  conv_out_data3_r_reg[2]/D (DFFHQX4)                     0.00      10.08 f
+  data arrival time                                                 10.08
+
+  clock i_clk (rise edge)                                 5.00       5.00
+  clock network delay (ideal)                             0.50       5.50
+  clock uncertainty                                      -0.10       5.40
+  conv_out_data3_r_reg[2]/CK (DFFHQX4)                    0.00       5.40 r
+  library setup time                                     -0.14       5.26
+  data required time                                                 5.26
+  --------------------------------------------------------------------------
+  data required time                                                 5.26
+  data arrival time                                                -10.08
+  --------------------------------------------------------------------------
+  slack (VIOLATED)                                                  -4.82
+
+
+1
