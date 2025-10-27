@@ -13,7 +13,7 @@ integer i,j,outfile,pat_error;
 always #5 clk=~clk;                      //cycle time is 10ns
 
 initial begin
-  // $sdf_annotate("ALU.sdf", my_alu);
+  $sdf_annotate("ALU.sdf", my_alu);
 
   pat_error=0;
 
