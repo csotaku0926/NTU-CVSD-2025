@@ -2,7 +2,7 @@
 ****************************************
 check_design summary:
 Version:     U-2022.12
-Date:        Sun Oct 26 17:29:43 2025
+Date:        Tue Oct 28 20:06:20 2025
 ****************************************
 
                    Name                                            Total
@@ -11,19 +11,17 @@ Cells                                                              63
     Cells do not drive (LINT-1)                                    63
 --------------------------------------------------------------------------------
 
-Warning: In design 'core', cell 'C16520' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16668' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16687' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16706' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16725' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16736' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16771' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16456' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16676' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16695' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16714' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16733' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16744' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16779' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'B_120' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16778' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16784' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16786' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16792' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16867' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16871' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16800' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16875' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16879' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16883' does not drive any nets. (LINT-1)
@@ -46,8 +44,8 @@ Warning: In design 'core', cell 'C16947' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16951' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16955' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16959' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16964' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C16968' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16963' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C16967' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16972' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16976' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C16980' does not drive any nets. (LINT-1)
@@ -70,8 +68,10 @@ Warning: In design 'core', cell 'C17044' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C17048' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C17052' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C17056' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C17083' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C17084' does not drive any nets. (LINT-1)
-Warning: In design 'core', cell 'C17087' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C17060' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C17064' does not drive any nets. (LINT-1)
 Warning: In design 'core', cell 'C17088' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C17089' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C17092' does not drive any nets. (LINT-1)
+Warning: In design 'core', cell 'C17093' does not drive any nets. (LINT-1)
 1

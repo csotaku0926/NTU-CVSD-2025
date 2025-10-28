@@ -40,8 +40,8 @@ module core (                       //Don't modify interface
 
 	// localparam IMG_SIZE = 4624; // 68 * 68
 	localparam LSB_SIZE = 636; // 64*9 + 57 = 633 --> make it 4 divisible
-	localparam MULT_SIZE = 37; // multiplication size
-	localparam RES_SIZE = 37; // buffering conv result
+	localparam MULT_SIZE = 27; // multiplication size
+	localparam RES_SIZE = 27; // buffering conv result
 	// localparam IMG_W = 64;
 
 // ================ state machine ====================
@@ -159,6 +159,14 @@ module core (                       //Don't modify interface
 			Dw = 0;
 			if (
 				(lsb_buf_r[LSB_SIZE-1-i_offset -:11 ] == C128_START) & (lsb_buf_r[LSB_SIZE-45-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-65-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-109-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-129-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-173-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-193-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-237-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-257-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-301-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-321-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-365-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-385-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-429-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-449-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-493-i_offset -:13] == C128_END)
+				& (lsb_buf_r[LSB_SIZE-513-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-557-i_offset -:13] == C128_END)
 				& (lsb_buf_r[LSB_SIZE-577-i_offset -:11] == C128_START) & (lsb_buf_r[LSB_SIZE-621-i_offset -:13] == C128_END)
 			) begin
 				Kw = (lsb_buf_r[LSB_SIZE-12-i_offset -:11] == C128_03) ? 3 : 0;
@@ -366,7 +374,7 @@ module core (                       //Don't modify interface
 	wire  			convReady;
 	wire  			s2_odd_valid, s2_even_valid; // for conv stride = 2
 
-	reg  [MULT_SIZE-1:0]	conv_out_data1_r, conv_out_data2_r, conv_out_data3_r, conv_out_data4_r; // for conv output
+	reg  [RES_SIZE-1:0]	conv_out_data1_r, conv_out_data2_r, conv_out_data3_r, conv_out_data4_r; // for conv output
 
 	assign o_out_valid1 = o_out_valid1_r;
 	assign o_out_valid2 = o_out_valid2_r;
@@ -614,11 +622,13 @@ module core (                       //Don't modify interface
 	reg 	[MULT_SIZE-1:0]	P2_01_00_reg, P2_01_01_reg, P2_01_02_reg;
 	reg 	[MULT_SIZE-1:0]	P2_02_00_reg, P2_02_01_reg, P2_02_02_reg;
 	reg 	[MULT_SIZE-1:0]	P2_03_00_reg, P2_03_01_reg, P2_03_02_reg;
+	reg  	[RES_SIZE-1:0]	P2_00_add_reg, P2_01_add_reg, P2_02_add_reg, P2_03_add_reg; 
 
 	reg 	[MULT_SIZE-1:0]	P3_00_00_reg, P3_00_01_reg, P3_00_02_reg;
 	reg 	[MULT_SIZE-1:0]	P3_01_00_reg, P3_01_01_reg, P3_01_02_reg;
 	reg 	[MULT_SIZE-1:0]	P3_02_00_reg, P3_02_01_reg, P3_02_02_reg;
 	reg 	[MULT_SIZE-1:0]	P3_03_00_reg, P3_03_01_reg, P3_03_02_reg;
+	reg  	[RES_SIZE-1:0]	P3_00_add_reg, P3_01_add_reg, P3_02_add_reg, P3_03_add_reg;
 
 	// reg 	[MULT_SIZE-1:0]	P3_00_reg, P3_01_reg, P3_02_reg, P3_03_reg; // no need cause max output is 4 bytes
 	// switch to new column (clear out first register)
@@ -640,17 +650,18 @@ module core (                       //Don't modify interface
 			P2_01_00_reg <= 0; P2_01_01_reg <= 0; P2_01_02_reg <= 0;
 			P2_02_00_reg <= 0; P2_02_01_reg <= 0; P2_02_02_reg <= 0;
 			P2_03_00_reg <= 0; P2_03_01_reg <= 0; P2_03_02_reg <= 0;
+			P2_00_add_reg <= 0; P2_01_add_reg <= 0; P2_02_add_reg <= 0; P2_03_add_reg <= 0;
 
 			P3_00_00_reg <= 0; P3_00_01_reg <= 0; P3_00_02_reg <= 0;
 			P3_01_00_reg <= 0; P3_01_01_reg <= 0; P3_01_02_reg <= 0;
 			P3_02_00_reg <= 0; P3_02_01_reg <= 0; P3_02_02_reg <= 0;
 			P3_03_00_reg <= 0; P3_03_01_reg <= 0; P3_03_02_reg <= 0;
+			P3_00_add_reg <= 0; P3_01_add_reg <= 0; P3_02_add_reg <= 0; P3_03_add_reg <= 0;
 		end
 		else if (state_next == S_OUTCONV) begin // wait until SRAM is loaded
 
 			if (dilation_sz_r == 1) begin
 				// P1 -- PP register
-				// * * * --> +
 				// 00_P1_r = 00_P3_r + 07 + 00 + 01 (weight: 0, 1, 2)
 				// P1_00_reg <= (flush_P1_w ? 0 : signed_mult(img_07_w, weight_r[0]) + 
 				// 			signed_mult(img_00_w, weight_r[1]) + signed_mult(img_01_w, weight_r[2]));
@@ -680,27 +691,31 @@ module core (                       //Don't modify interface
 				// 00_P2_r = 00_P1_r + 07 + 00 + 01 (weight: 3, 4, 5)
 				// P2_00_reg <= signed_mult(img_07_r, weight_r[3]) + signed_mult(img_00_r, weight_r[4]) + 
 				// 			signed_mult(img_01_r, weight_r[5]) + P1_00_reg;
-				P2_00_00_reg <= signed_mult(img_07_r, weight_r[3]) + P1_00_00_reg;
-				P2_00_01_reg <= signed_mult(img_00_r, weight_r[4]) + P1_00_01_reg; 
-				P2_00_02_reg <= signed_mult(img_01_r, weight_r[5]) + P1_00_02_reg;
+				P2_00_00_reg <= signed_mult(img_07_r, weight_r[3]);
+				P2_00_01_reg <= signed_mult(img_00_r, weight_r[4]); 
+				P2_00_02_reg <= signed_mult(img_01_r, weight_r[5]);
+				P2_00_add_reg <= P1_00_00_reg + P1_00_01_reg + P1_00_02_reg;
 
 				// P2_01_reg <= signed_mult(img_00_r, weight_r[3]) + signed_mult(img_01_r, weight_r[4]) + 
 				// 			signed_mult(img_02_r, weight_r[5]) + P1_01_reg;
-				P2_01_00_reg <= signed_mult(img_00_r, weight_r[3]) + P1_01_00_reg;
-				P2_01_01_reg <= signed_mult(img_01_r, weight_r[4]) + P1_01_01_reg; 
-				P2_01_02_reg <= signed_mult(img_02_r, weight_r[5]) + P1_01_02_reg;
+				P2_01_00_reg <= signed_mult(img_00_r, weight_r[3]);
+				P2_01_01_reg <= signed_mult(img_01_r, weight_r[4]); 
+				P2_01_02_reg <= signed_mult(img_02_r, weight_r[5]);
+				P2_01_add_reg <= P1_01_00_reg + P1_01_01_reg + P1_01_02_reg;
 
 				// P2_02_reg <= signed_mult(img_01_r, weight_r[3]) + signed_mult(img_02_r, weight_r[4]) + 
 				// 			signed_mult(img_03_r, weight_r[5]) + P1_02_reg;
-				P2_02_00_reg <= signed_mult(img_01_r, weight_r[3]) + P1_02_00_reg;
-				P2_02_01_reg <= signed_mult(img_02_r, weight_r[4]) + P1_02_01_reg; 
-				P2_02_02_reg <= signed_mult(img_03_r, weight_r[5]) + P1_02_02_reg;
+				P2_02_00_reg <= signed_mult(img_01_r, weight_r[3]);
+				P2_02_01_reg <= signed_mult(img_02_r, weight_r[4]); 
+				P2_02_02_reg <= signed_mult(img_03_r, weight_r[5]);
+				P2_02_add_reg <= P1_02_00_reg + P1_02_01_reg + P1_02_02_reg;
 
 				// P2_03_reg <= signed_mult(img_02_r, weight_r[3]) + signed_mult(img_03_r, weight_r[4]) + 
 				// 			signed_mult(img_04_r, weight_r[5]) + P1_03_reg;
-				P2_03_00_reg <= signed_mult(img_02_r, weight_r[3]) + P1_03_00_reg;
-				P2_03_01_reg <= signed_mult(img_03_r, weight_r[4]) + P1_03_01_reg; 
-				P2_03_02_reg <= signed_mult(img_04_r, weight_r[5]) + P1_03_02_reg;
+				P2_03_00_reg <= signed_mult(img_02_r, weight_r[3]);
+				P2_03_01_reg <= signed_mult(img_03_r, weight_r[4]); 
+				P2_03_02_reg <= signed_mult(img_04_r, weight_r[5]);
+				P2_03_add_reg <= P1_03_00_reg + P1_03_01_reg + P1_03_02_reg;
 
 				// ==================== P3 -- output ( at (0,0) is not valid ) ===============
 				// 00_P3_r = 00_P2_r + 07 + 00 + 01 (weight: 6, 7, 8)
@@ -708,34 +723,37 @@ module core (                       //Don't modify interface
 
 				// conv_out_data1_r <= (P2_00_reg + (flush_P3_w ? 0 : signed_mult(img_07_r, weight_r[6]) + 
 				// 	signed_mult(img_00_r, weight_r[7]) + signed_mult(img_01_r, weight_r[8])));		
-				P3_00_00_reg <= P2_00_00_reg + (flush_P3_w ? 0 : signed_mult(img_07_r, weight_r[6]));
-				P3_00_01_reg <= P2_00_01_reg + (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[7]));
-				P3_00_02_reg <= P2_00_02_reg + (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[8]));
-				// OUT_TMP_00_r <= round2_8bit(P3_00_00_reg + P3_00_01_reg + P3_00_02_reg);
+				P3_00_00_reg <= (flush_P3_w ? 0 : signed_mult(img_07_r, weight_r[6]));
+				P3_00_01_reg <= (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[7]));
+				P3_00_02_reg <= (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[8]));
+				P3_00_add_reg <= P2_00_00_reg + P2_00_01_reg + P2_00_02_reg + P2_00_add_reg;
 
 				// conv_out_data2_r <= (P2_01_reg + (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[6]) + 
 				// 	signed_mult(img_01_r, weight_r[7]) + signed_mult(img_02_r, weight_r[8])));
-				P3_01_00_reg <= P2_01_00_reg + (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[6]));
-				P3_01_01_reg <= P2_01_01_reg + (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[7]));
-				P3_01_02_reg <= P2_01_02_reg + (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[8]));
+				P3_01_00_reg <= (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[6]));
+				P3_01_01_reg <= (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[7]));
+				P3_01_02_reg <= (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[8]));
+				P3_01_add_reg <= P2_01_00_reg + P2_01_01_reg + P2_01_02_reg + P2_01_add_reg;
 
 				// conv_out_data3_r <= (P2_02_reg + (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[6]) + 
 				// 	signed_mult(img_02_r, weight_r[7]) + signed_mult(img_03_r, weight_r[8])));
-				P3_02_00_reg <= P2_02_00_reg + (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[6]));
-				P3_02_01_reg <= P2_02_01_reg + (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[7]));
-				P3_02_02_reg <= P2_02_02_reg + (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[8]));
+				P3_02_00_reg <= (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[6]));
+				P3_02_01_reg <= (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[7]));
+				P3_02_02_reg <= (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[8]));
+				P3_02_add_reg <= P2_02_00_reg + P2_02_01_reg + P2_02_02_reg + P2_02_add_reg;
 
 				// conv_out_data4_r <= (P2_03_reg + (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[6]) + 
 				// 	signed_mult(img_03_r, weight_r[7]) + signed_mult(img_04_r, weight_r[8])));
-				P3_03_00_reg <= P2_03_00_reg + (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[6]));
-				P3_03_01_reg <= P2_03_01_reg + (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[7]));
-				P3_03_02_reg <= P2_03_02_reg + (flush_P3_w ? 0 : signed_mult(img_04_r, weight_r[8]));
+				P3_03_00_reg <= (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[6]));
+				P3_03_01_reg <= (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[7]));
+				P3_03_02_reg <= (flush_P3_w ? 0 : signed_mult(img_04_r, weight_r[8]));
+				P3_03_add_reg <= P2_03_00_reg + P2_03_01_reg + P2_03_02_reg + P2_03_add_reg;
 
 				// ============== final result ================
-				conv_out_data1_r <= P3_00_00_reg + P3_00_01_reg + P3_00_02_reg;
-				conv_out_data2_r <= P3_01_00_reg + P3_01_01_reg + P3_01_02_reg;
-				conv_out_data3_r <= P3_02_00_reg + P3_02_01_reg + P3_02_02_reg;
-				conv_out_data4_r <= P3_03_00_reg + P3_03_01_reg + P3_03_02_reg;
+				conv_out_data1_r <= P3_00_00_reg + P3_00_01_reg + P3_00_02_reg + P3_00_add_reg;
+				conv_out_data2_r <= P3_01_00_reg + P3_01_01_reg + P3_01_02_reg + P3_01_add_reg;
+				conv_out_data3_r <= P3_02_00_reg + P3_02_01_reg + P3_02_02_reg + P3_02_add_reg;
+				conv_out_data4_r <= P3_03_00_reg + P3_03_01_reg + P3_03_02_reg + P3_03_add_reg;
 
 			end
 
@@ -770,60 +788,68 @@ module core (                       //Don't modify interface
 				// 00_P2_r = 00_P1_r + 07 + 00 + 01 (weight: 3, 4, 5)
 				// P2_00_reg <= signed_mult(img_06_r, weight_r[3]) + signed_mult(img_00_r, weight_r[4]) + signed_mult(img_02_r, weight_r[5]) 
 				// 			+ P1_00_reg;
-				P2_00_00_reg <= P1_00_00_reg + signed_mult(img_06_r, weight_r[3]);
-				P2_00_01_reg <= P1_00_01_reg + signed_mult(img_00_r, weight_r[4]);
-				P2_00_02_reg <= P1_00_02_reg + signed_mult(img_02_r, weight_r[5]);		
+				P2_00_00_reg <= signed_mult(img_06_r, weight_r[3]);
+				P2_00_01_reg <= signed_mult(img_00_r, weight_r[4]);
+				P2_00_02_reg <= signed_mult(img_02_r, weight_r[5]);
+				P2_00_add_reg <= P1_00_00_reg + P1_00_01_reg + P1_00_02_reg;
 
 				// P2_01_reg <= signed_mult(img_07_r, weight_r[3]) + signed_mult(img_01_r, weight_r[4]) + signed_mult(img_03_r, weight_r[5]) 
 				// 			+ P1_01_reg;
-				P2_01_00_reg <= P1_01_00_reg + signed_mult(img_07_r, weight_r[3]);
-				P2_01_01_reg <= P1_01_01_reg + signed_mult(img_01_r, weight_r[4]);
-				P2_01_02_reg <= P1_01_02_reg + signed_mult(img_03_r, weight_r[5]);		
+				P2_01_00_reg <= signed_mult(img_07_r, weight_r[3]);
+				P2_01_01_reg <= signed_mult(img_01_r, weight_r[4]);
+				P2_01_02_reg <= signed_mult(img_03_r, weight_r[5]);
+				P2_01_add_reg <= P1_01_00_reg + P1_01_01_reg + P1_01_02_reg;		
 
 				// P2_02_reg <= signed_mult(img_00_r, weight_r[3]) + signed_mult(img_02_r, weight_r[4]) + signed_mult(img_04_r, weight_r[5]) 
 				// 			+ P1_02_reg;
-				P2_02_00_reg <= P1_02_00_reg + signed_mult(img_00_r, weight_r[3]);
-				P2_02_01_reg <= P1_02_01_reg + signed_mult(img_02_r, weight_r[4]);
-				P2_02_02_reg <= P1_02_02_reg + signed_mult(img_04_r, weight_r[5]);		
+				P2_02_00_reg <= signed_mult(img_00_r, weight_r[3]);
+				P2_02_01_reg <= signed_mult(img_02_r, weight_r[4]);
+				P2_02_02_reg <= signed_mult(img_04_r, weight_r[5]);
+				P2_02_add_reg <= P1_02_00_reg + P1_02_01_reg + P1_02_02_reg;
 
 				// P2_03_reg <= signed_mult(img_01_r, weight_r[3]) + signed_mult(img_03_r, weight_r[4]) + signed_mult(img_05_r, weight_r[5]) 
 				// 			+ P1_03_reg;
-				P2_03_00_reg <= P1_03_00_reg + signed_mult(img_01_r, weight_r[3]);
-				P2_03_01_reg <= P1_03_01_reg + signed_mult(img_03_r, weight_r[4]);
-				P2_03_02_reg <= P1_03_02_reg + signed_mult(img_05_r, weight_r[5]);		
+				P2_03_00_reg <= signed_mult(img_01_r, weight_r[3]);
+				P2_03_01_reg <= signed_mult(img_03_r, weight_r[4]);
+				P2_03_02_reg <= signed_mult(img_05_r, weight_r[5]);
+				P2_03_add_reg <= P1_03_00_reg + P1_03_01_reg + P1_03_02_reg;
 
 				// ==================== P3 -- output ( at (0,0) is not valid ) ===============
 				// 00_P3_r = 00_P2_r + 07 + 00 + 01 (weight: 6, 7, 8)
 				// note at row 0, the latter add term should be 0
 	
-				P3_00_00_reg <= P2_00_00_reg + (flush_P3_w ? 0 : signed_mult(img_06_r, weight_r[6]));
-				P3_00_01_reg <= P2_00_01_reg + (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[7]));
-				P3_00_02_reg <= P2_00_02_reg + (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[8]));
+				P3_00_00_reg <= (flush_P3_w ? 0 : signed_mult(img_06_r, weight_r[6]));
+				P3_00_01_reg <= (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[7]));
+				P3_00_02_reg <= (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[8]));
+				P3_00_add_reg <= P2_00_00_reg + P2_00_01_reg + P2_00_02_reg + P2_00_add_reg;
 				// OUT_TMP_00_r <= round2_8bit(P3_00_00_reg + P3_00_01_reg + P3_00_02_reg);
 
 				// conv_out_data2_r <= (P2_01_reg + (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[6]) + 
 				// 	signed_mult(img_01_r, weight_r[7]) + signed_mult(img_02_r, weight_r[8])));
-				P3_01_00_reg <= P2_01_00_reg + (flush_P3_w ? 0 : signed_mult(img_07_r, weight_r[6]));
-				P3_01_01_reg <= P2_01_01_reg + (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[7]));
-				P3_01_02_reg <= P2_01_02_reg + (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[8]));
+				P3_01_00_reg <= (flush_P3_w ? 0 : signed_mult(img_07_r, weight_r[6]));
+				P3_01_01_reg <= (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[7]));
+				P3_01_02_reg <= (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[8]));
+				P3_01_add_reg <= P2_01_00_reg + P2_01_01_reg + P2_01_02_reg + P2_01_add_reg;
 
 				// conv_out_data3_r <= (P2_02_reg + (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[6]) + 
 				// 	signed_mult(img_02_r, weight_r[7]) + signed_mult(img_03_r, weight_r[8])));
-				P3_02_00_reg <= P2_02_00_reg + (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[6]));
-				P3_02_01_reg <= P2_02_01_reg + (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[7]));
-				P3_02_02_reg <= P2_02_02_reg + (flush_P3_w ? 0 : signed_mult(img_04_r, weight_r[8]));
+				P3_02_00_reg <= (flush_P3_w ? 0 : signed_mult(img_00_r, weight_r[6]));
+				P3_02_01_reg <= (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[7]));
+				P3_02_02_reg <= (flush_P3_w ? 0 : signed_mult(img_04_r, weight_r[8]));
+				P3_02_add_reg <= P2_02_00_reg + P2_02_01_reg + P2_02_02_reg + P2_02_add_reg;
 
 				// conv_out_data4_r <= (P2_03_reg + (flush_P3_w ? 0 : signed_mult(img_02_r, weight_r[6]) + 
 				// 	signed_mult(img_03_r, weight_r[7]) + signed_mult(img_04_r, weight_r[8])));
-				P3_03_00_reg <= P2_03_00_reg + (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[6]));
-				P3_03_01_reg <= P2_03_01_reg + (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[7]));
-				P3_03_02_reg <= P2_03_02_reg + (flush_P3_w ? 0 : signed_mult(img_05_r, weight_r[8]));
+				P3_03_00_reg <= (flush_P3_w ? 0 : signed_mult(img_01_r, weight_r[6]));
+				P3_03_01_reg <= (flush_P3_w ? 0 : signed_mult(img_03_r, weight_r[7]));
+				P3_03_02_reg <= (flush_P3_w ? 0 : signed_mult(img_05_r, weight_r[8]));
+				P3_03_add_reg <= P2_03_00_reg + P2_03_01_reg + P2_03_02_reg + P2_03_add_reg;
 
 				// ============== final result ================
-				conv_out_data1_r <= P3_00_00_reg + P3_00_01_reg + P3_00_02_reg;
-				conv_out_data2_r <= P3_01_00_reg + P3_01_01_reg + P3_01_02_reg;
-				conv_out_data3_r <= P3_02_00_reg + P3_02_01_reg + P3_02_02_reg;
-				conv_out_data4_r <= P3_03_00_reg + P3_03_01_reg + P3_03_02_reg;
+				conv_out_data1_r <= P3_00_00_reg + P3_00_01_reg + P3_00_02_reg + P3_00_add_reg;
+				conv_out_data2_r <= P3_01_00_reg + P3_01_01_reg + P3_01_02_reg + P3_01_add_reg;
+				conv_out_data3_r <= P3_02_00_reg + P3_02_01_reg + P3_02_02_reg + P3_02_add_reg;
+				conv_out_data4_r <= P3_03_00_reg + P3_03_01_reg + P3_03_02_reg + P3_03_add_reg;
 
 				// conv_out_data1_r <= (P2_00_reg + (flush_P3_w ? 0 : 
 				// 	signed_mult(img_06_r, weight_r[6]) + signed_mult(img_00_r, weight_r[7]) + signed_mult(img_02_r, weight_r[8])));
@@ -873,7 +899,7 @@ module core (                       //Don't modify interface
 		input [7:0]	i_weight;
 
 		begin
-			signed_mult = $signed({21'b0, i_img, 7'b0}) * $signed({ {29{i_weight[7]}}, i_weight});
+			signed_mult = $signed({8'b0, i_img, 7'b0}) * $signed(i_weight); //$signed({ {15{i_weight[7]}}, i_weight});
 		end
 	endfunction
 
@@ -886,13 +912,13 @@ module core (                       //Don't modify interface
 		reg   [RES_SIZE-1:0] sum_r;
 
 		begin
-			// round to nearest ([36]: signed, [30:15] --> integer, [13:0] --> fraction)
-			do_round = (~i_data[36] & i_data[13]) | (i_data[36] & ~i_data[13] & (i_data[13:0] > 0));
-			sum_r = (do_round) ? i_data + 37'b0100_0000_0000_0000 : i_data;
+			// round to nearest ([26]: signed, [21:14] --> integer, [13:0] --> fraction)
+			do_round = (~i_data[26] & i_data[13]) | (i_data[26] & ~i_data[13] & (i_data[13:0] > 0));
+			sum_r = (do_round) ? i_data + 16'b0100_0000_0000_0000 : i_data;
 
 			// clamp to [0, 255] 
-			round2_8bit = (sum_r[36] == 1) ? 0 : ( // negative
-					(sum_r[35:22] > 0) ? 8'd255 : // overflow 255
+			round2_8bit = (sum_r[26] == 1) ? 0 : ( // negative
+					(sum_r[25:22] > 0) ? 8'd255 : // overflow 255
 					sum_r[21:14]
 			);
 		end
