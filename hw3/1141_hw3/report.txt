@@ -1,10 +1,10 @@
-student ID:   
+student ID:   r13921a02
 
-Clock Period:  (ns)
+Clock Period: 3.5 (ns)
 
-simulation time for tb1: ... (ns)
-simulation time for tb2: ... (ns)
-simulation time for tb3: ... (ns)
-simulation time for tb4: ... (ns)
+simulation time for tb1: 7220.5 (ns)
+simulation time for tb2: 7220.5 (ns)
+simulation time for tb3: 7220.5 (ns)
+simulation time for tb4: 7220.5 (ns)
 
-Area:         (um^2)
+Area:    684264.702809     (um^2)

@@ -40,6 +40,154 @@
     `define D_SIZE 2
     `define VALID_OP 1
     `define OUTPUTSIZE 1024
+
+`elsif tb5
+    `define INFILE "../00_TESTBED/PATTERNS/img2_030101_00.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img2_030101_00.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img2_030101_00.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb6
+    `define INFILE "../00_TESTBED/PATTERNS/img2_030102_053.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img2_030102_053.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img2_030102_053.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb7
+    `define INFILE "../00_TESTBED/PATTERNS/img2_030201_70.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img2_030201_70.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img2_030201_70.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
+`elsif tb8
+    `define INFILE "../00_TESTBED/PATTERNS/img2_030202_753.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img2_030202_753.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img2_030202_753.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
+    
+`elsif tb9
+    `define INFILE "../00_TESTBED/PATTERNS/img3_030101_053.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img3_030101_053.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img3_030101_053.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb10
+    `define INFILE "../00_TESTBED/PATTERNS/img3_030102_00.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img3_030102_00.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img3_030102_00.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb11
+    `define INFILE "../00_TESTBED/PATTERNS/img3_030201_753.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img3_030201_753.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img3_030201_753.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
+`elsif tb12
+    `define INFILE "../00_TESTBED/PATTERNS/img3_030202_70.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img3_030202_70.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img3_030202_70.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
+
+`elsif tb13
+    `define INFILE "../00_TESTBED/PATTERNS/img4_030101_053.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img4_030101_053.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img4_030101_053.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb14
+    `define INFILE "../00_TESTBED/PATTERNS/img4_030102_00.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img4_030102_00.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img4_030102_00.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb15
+    `define INFILE "../00_TESTBED/PATTERNS/img4_030201_753.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img4_030201_753.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img4_030201_753.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
+`elsif tb16
+    `define INFILE "../00_TESTBED/PATTERNS/img4_030202_70.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img4_030202_70.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img4_030202_70.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
+
+`elsif tb17
+    `define INFILE "../00_TESTBED/PATTERNS/img5_030101_753.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img5_030101_753.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img5_030101_753.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb18
+    `define INFILE "../00_TESTBED/PATTERNS/img5_030102_70.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img5_030102_70.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img5_030102_70.dat"
+    `define K_SIZE 3
+    `define S_SIZE 1
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 4096
+`elsif tb19
+    `define INFILE "../00_TESTBED/PATTERNS/img5_030201_053.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img5_030201_053.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img5_030201_053.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 1
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
+`elsif tb20
+    `define INFILE "../00_TESTBED/PATTERNS/img5_030202_00.dat"
+    `define WFILE  "../00_TESTBED/PATTERNS/weight_img5_030202_00.dat"
+    `define GOLDEN "../00_TESTBED/PATTERNS/golden_img5_030202_00.dat"
+    `define K_SIZE 3
+    `define S_SIZE 2
+    `define D_SIZE 2
+    `define VALID_OP 1
+    `define OUTPUTSIZE 1024
 // `elsif tbh
 // `define INFILE "../00_TESTBED/PATTERN/.dat"
 // `define WFILE  "../00_TESTBED/PATTERN/.dat"
@@ -50,7 +198,7 @@
 // `define VALID_OP 
 // `define OUTPUTSIZE 
 `else
-    `define INFILE "../00_TESTBED/PATTERNS/img1_050102_514.dat"
+    `define INFILE "../00_TESTBED/PATTERNS/img3_050101_514.dat"
     `define WFILE  "../00_TESTBED/PATTERNS/weight_img1_050102_514.dat"
     `define GOLDEN "../00_TESTBED/PATTERNS/golden_img1_050102_514.dat"
     `define K_SIZE 0

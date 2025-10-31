@@ -343,10 +343,6 @@ module core (                       //Don't modify interface
 				{ sram00_in_data, sram01_in_data, sram02_in_data, sram03_in_data } <= i_in_data;
 			else 
 				{ sram04_in_data, sram05_in_data, sram06_in_data, sram07_in_data } <= i_in_data;
-			// else if (sram_r2_in_CEN)
-			// 	{ sram21_in_data, sram22_in_data, sram23_in_data, sram20_in_data } <= i_in_data;
-			// else if (sram_r3_in_CEN)
-			// 	{ sram31_in_data, sram32_in_data, sram33_in_data, sram30_in_data } <= i_in_data;
 		end
 	end
 
@@ -913,7 +909,8 @@ module core (                       //Don't modify interface
 
 		begin
 			// round to nearest ([26]: signed, [21:14] --> integer, [13:0] --> fraction)
-			do_round = (~i_data[26] & i_data[13]) | (i_data[26] & ~i_data[13] & (i_data[13:0] > 0));
+			// no need to round negative up
+			do_round = (~i_data[26] & i_data[13]);
 			sum_r = (do_round) ? i_data + 16'b0100_0000_0000_0000 : i_data;
 
 			// clamp to [0, 255] 

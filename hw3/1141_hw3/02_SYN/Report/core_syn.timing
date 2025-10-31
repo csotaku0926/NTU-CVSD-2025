@@ -8,7 +8,7 @@ Report : timing
         -max_paths 5
 Design : core
 Version: U-2022.12
-Date   : Tue Oct 28 20:11:43 2025
+Date   : Thu Oct 30 16:22:21 2025
 ****************************************
 
  # A fanout number of 1000 was used for high fanout net computations.
@@ -16,9 +16,9 @@ Date   : Tue Oct 28 20:11:43 2025
 Operating Conditions: slow   Library: slow
 Wire Load Model Mode: top
 
-  Startpoint: weight_r_reg[6][2]
+  Startpoint: weight_r_reg[8][2]
               (rising edge-triggered flip-flop clocked by i_clk)
-  Endpoint: P3_01_00_reg_reg[19]
+  Endpoint: P3_03_02_reg_reg[20]
             (rising edge-triggered flip-flop clocked by i_clk)
   Path Group: i_clk
   Path Type: max
@@ -31,44 +31,48 @@ Wire Load Model Mode: top
   --------------------------------------------------------------------------
   clock i_clk (rise edge)                                 0.00       0.00
   clock network delay (ideal)                             0.50       0.50
-  weight_r_reg[6][2]/CK (DFFRX4)                          0.00 #     0.50 r
-  weight_r_reg[6][2]/Q (DFFRX4)                           0.66       1.16 f
-  r1467/b[2] (core_DW_mult_tc_48)                         0.00       1.16 f
-  r1467/U295/Y (XNOR2X4)                                  0.25       1.42 f
-  r1467/U388/Y (INVX12)                                   0.18       1.60 r
-  r1467/U486/Y (NAND2X8)                                  0.19       1.79 f
-  r1467/U459/Y (OAI22X2)                                  0.29       2.08 r
-  r1467/U380/S (ADDFHX2)                                  0.50       2.58 f
-  r1467/U439/S (ADDFHX4)                                  0.32       2.90 r
-  r1467/U379/Y (NOR2X8)                                   0.09       3.00 f
-  r1467/U359/Y (NOR2X6)                                   0.14       3.13 r
-  r1467/U390/Y (NAND2X2)                                  0.12       3.25 f
-  r1467/U367/Y (OAI21X4)                                  0.17       3.42 r
-  r1467/U282/Y (BUFX20)                                   0.15       3.57 r
-  r1467/U440/Y (XNOR2X4)                                  0.13       3.70 r
-  r1467/product[19] (core_DW_mult_tc_48)                  0.00       3.70 r
-  U6788/Y (INVX8)                                         0.08       3.77 f
-  U5664/Y (OR2X1)                                         0.33       4.10 f
-  U4777/Y (NAND3X2)                                       0.13       4.23 r
-  P3_01_00_reg_reg[19]/D (DFFRX2)                         0.00       4.23 r
-  data arrival time                                                  4.23
+  weight_r_reg[8][2]/CK (DFFRX4)                          0.00 #     0.50 r
+  weight_r_reg[8][2]/QN (DFFRX4)                          0.35       0.85 r
+  U6823/Y (INVX12)                                        0.11       0.96 f
+  r1467/b[2] (core_DW_mult_tc_53)                         0.00       0.96 f
+  r1467/U413/Y (XNOR2X4)                                  0.22       1.18 f
+  r1467/U370/Y (INVX8)                                    0.09       1.27 r
+  r1467/U525/Y (AND2X8)                                   0.16       1.43 r
+  r1467/U395/Y (INVX16)                                   0.08       1.51 f
+  r1467/U365/Y (OAI22X2)                                  0.29       1.80 r
+  r1467/U467/S (ADDFHX4)                                  0.40       2.20 f
+  r1467/U417/Y (NAND2X2)                                  0.16       2.37 r
+  r1467/U502/Y (INVX6)                                    0.08       2.44 f
+  r1467/U512/Y (AOI21X4)                                  0.12       2.57 r
+  r1467/U519/Y (OAI21X4)                                  0.14       2.71 f
+  r1467/U81/Y (AOI21X4)                                   0.16       2.87 r
+  r1467/U40/Y (OAI21X4)                                   0.12       2.99 f
+  r1467/U450/Y (CLKINVX8)                                 0.08       3.06 r
+  r1467/U276/Y (INVX16)                                   0.06       3.12 f
+  r1467/U473/Y (AOI21X4)                                  0.14       3.26 r
+  r1467/U472/Y (XOR2X4)                                   0.15       3.41 r
+  r1467/product[20] (core_DW_mult_tc_53)                  0.00       3.41 r
+  U8183/Y (INVX8)                                         0.08       3.50 f
+  U8355/Y (OAI221X2)                                      0.23       3.72 r
+  P3_03_02_reg_reg[20]/D (DFFRHQX4)                       0.00       3.72 r
+  data arrival time                                                  3.72
 
-  clock i_clk (rise edge)                                 4.00       4.00
-  clock network delay (ideal)                             0.50       4.50
-  clock uncertainty                                      -0.10       4.40
-  P3_01_00_reg_reg[19]/CK (DFFRX2)                        0.00       4.40 r
-  library setup time                                     -0.17       4.23
-  data required time                                                 4.23
+  clock i_clk (rise edge)                                 3.50       3.50
+  clock network delay (ideal)                             0.50       4.00
+  clock uncertainty                                      -0.10       3.90
+  P3_03_02_reg_reg[20]/CK (DFFRHQX4)                      0.00       3.90 r
+  library setup time                                     -0.18       3.72
+  data required time                                                 3.72
   --------------------------------------------------------------------------
-  data required time                                                 4.23
-  data arrival time                                                 -4.23
+  data required time                                                 3.72
+  data arrival time                                                 -3.72
   --------------------------------------------------------------------------
   slack (MET)                                                        0.00
 
 
-  Startpoint: weight_r_reg[2][0]
+  Startpoint: P2_00_add_reg_reg[13]
               (rising edge-triggered flip-flop clocked by i_clk)
-  Endpoint: P1_00_02_reg_reg[21]
+  Endpoint: P3_00_add_reg_reg[20]
             (rising edge-triggered flip-flop clocked by i_clk)
   Path Group: i_clk
   Path Type: max
@@ -81,44 +85,47 @@ Wire Load Model Mode: top
   --------------------------------------------------------------------------
   clock i_clk (rise edge)                                 0.00       0.00
   clock network delay (ideal)                             0.50       0.50
-  weight_r_reg[2][0]/CK (DFFRX4)                          0.00 #     0.50 r
-  weight_r_reg[2][0]/Q (DFFRX4)                           0.67       1.17 f
-  mult_902_C670/b[0] (core_DW_mult_tc_65)                 0.00       1.17 f
-  mult_902_C670/U396/Y (CLKINVX6)                         0.30       1.47 r
-  mult_902_C670/U372/Y (AND2X6)                           0.20       1.68 r
-  mult_902_C670/U287/Y (INVX16)                           0.08       1.76 f
-  mult_902_C670/U358/Y (OAI22X1)                          0.36       2.12 r
-  mult_902_C670/U442/S (ADDFHX2)                          0.50       2.62 f
-  mult_902_C670/U366/Y (NAND2X4)                          0.12       2.74 r
-  mult_902_C670/U365/Y (INVX3)                            0.11       2.85 f
-  mult_902_C670/U433/Y (AOI21X4)                          0.16       3.01 r
-  mult_902_C670/U432/Y (OAI21X4)                          0.12       3.13 f
-  mult_902_C670/U472/Y (AOI21X4)                          0.21       3.34 r
-  mult_902_C670/U289/Y (OR2X6)                            0.18       3.52 r
-  mult_902_C670/U290/Y (NAND2X8)                          0.10       3.63 f
-  mult_902_C670/U435/Y (AOI21X2)                          0.20       3.83 r
-  mult_902_C670/U404/Y (XOR2X4)                           0.17       4.00 r
-  mult_902_C670/product[21] (core_DW_mult_tc_65)          0.00       4.00 r
-  U6145/Y (NAND2X6)                                       0.09       4.09 f
-  U6767/Y (OAI221X2)                                      0.11       4.20 r
-  P1_00_02_reg_reg[21]/D (DFFRX2)                         0.00       4.20 r
-  data arrival time                                                  4.20
+  P2_00_add_reg_reg[13]/CK (DFFRX4)                       0.00 #     0.50 r
+  P2_00_add_reg_reg[13]/Q (DFFRX4)                        0.51       1.01 f
+  add_1_root_r1452/B[13] (core_DW01_add_57)               0.00       1.01 f
+  add_1_root_r1452/U336/Y (NOR2X4)                        0.24       1.25 r
+  add_1_root_r1452/U408/Y (OAI21X4)                       0.15       1.40 f
+  add_1_root_r1452/U395/Y (AOI21X2)                       0.18       1.57 r
+  add_1_root_r1452/U452/Y (OA21X4)                        0.19       1.76 r
+  add_1_root_r1452/U471/Y (OAI2BB1X4)                     0.13       1.89 f
+  add_1_root_r1452/U430/Y (CLKINVX12)                     0.11       2.00 r
+  add_1_root_r1452/U375/Y (OR2X6)                         0.12       2.12 r
+  add_1_root_r1452/U399/Y (NAND2X4)                       0.06       2.18 f
+  add_1_root_r1452/U400/Y (XOR2X4)                        0.16       2.34 f
+  add_1_root_r1452/SUM[19] (core_DW01_add_57)             0.00       2.34 f
+  add_0_root_r1452/A[19] (core_DW01_add_140)              0.00       2.34 f
+  add_0_root_r1452/U328/Y (NOR2X6)                        0.16       2.50 r
+  add_0_root_r1452/U355/Y (NOR2X4)                        0.12       2.63 f
+  add_0_root_r1452/U331/Y (INVX3)                         0.11       2.73 r
+  add_0_root_r1452/U356/Y (CLKINVX1)                      0.20       2.93 f
+  add_0_root_r1452/U361/Y (AOI21X1)                       0.32       3.25 r
+  add_0_root_r1452/U344/Y (OAI21X2)                       0.17       3.42 f
+  add_0_root_r1452/U343/Y (XNOR2X4)                       0.13       3.55 r
+  add_0_root_r1452/SUM[20] (core_DW01_add_140)            0.00       3.55 r
+  U6854/Y (CLKMX2X4)                                      0.20       3.75 r
+  P3_00_add_reg_reg[20]/D (DFFRX2)                        0.00       3.75 r
+  data arrival time                                                  3.75
 
-  clock i_clk (rise edge)                                 4.00       4.00
-  clock network delay (ideal)                             0.50       4.50
-  clock uncertainty                                      -0.10       4.40
-  P1_00_02_reg_reg[21]/CK (DFFRX2)                        0.00       4.40 r
-  library setup time                                     -0.20       4.20
-  data required time                                                 4.20
+  clock i_clk (rise edge)                                 3.50       3.50
+  clock network delay (ideal)                             0.50       4.00
+  clock uncertainty                                      -0.10       3.90
+  P3_00_add_reg_reg[20]/CK (DFFRX2)                       0.00       3.90 r
+  library setup time                                     -0.15       3.75
+  data required time                                                 3.75
   --------------------------------------------------------------------------
-  data required time                                                 4.20
-  data arrival time                                                 -4.20
+  data required time                                                 3.75
+  data arrival time                                                 -3.75
   --------------------------------------------------------------------------
   slack (MET)                                                        0.00
 
 
   Startpoint: i_in_valid (input port clocked by i_clk)
-  Endpoint: P2_03_01_reg_reg[7]
+  Endpoint: P1_01_00_reg_reg[11]
             (rising edge-triggered flip-flop clocked by i_clk)
   Path Group: i_clk
   Path Type: max
@@ -131,38 +138,78 @@ Wire Load Model Mode: top
   -----------------------------------------------------------
   clock i_clk (rise edge)                  0.00       0.00
   clock network delay (ideal)              0.50       0.50
-  input external delay                     2.00       2.50 f
-  i_in_valid (in)                          0.00       2.50 f
-  U6532/Y (NAND2X8)                        0.06       2.56 r
-  U9496/Y (NAND2X8)                        0.08       2.64 f
-  U5901/Y (BUFX16)                         0.11       2.75 f
-  U7499/Y (BUFX20)                         0.10       2.85 f
-  U7053/Y (BUFX20)                         0.10       2.95 f
-  U6931/Y (BUFX20)                         0.10       3.05 f
-  U6998/Y (CLKBUFX2)                       0.24       3.30 f
-  U4681/Y (BUFX20)                         0.18       3.48 f
-  U7387/Y (INVX3)                          0.08       3.56 r
-  U5321/Y (BUFX12)                         0.18       3.75 r
-  U7241/Y (MX2XL)                          0.43       4.18 r
-  P2_03_01_reg_reg[7]/D (DFFRX4)           0.00       4.18 r
-  data arrival time                                   4.18
+  input external delay                     1.75       2.25 r
+  i_in_valid (in)                          0.00       2.25 r
+  U5207/Y (CLKINVX20)                      0.02       2.27 f
+  U7407/Y (OAI2BB1X4)                      0.16       2.43 f
+  U7542/Y (NAND2X8)                        0.10       2.53 r
+  U5345/Y (BUFX20)                         0.11       2.64 r
+  U5344/Y (BUFX20)                         0.10       2.74 r
+  U5951/Y (BUFX8)                          0.14       2.87 r
+  U5956/Y (BUFX12)                         0.14       3.01 r
+  U4831/Y (CLKINVX8)                       0.09       3.10 f
+  U5994/Y (INVX8)                          0.09       3.18 r
+  U5914/Y (INVX8)                          0.06       3.25 f
+  U5757/Y (CLKINVX12)                      0.04       3.29 r
+  U4390/Y (INVX20)                         0.03       3.32 f
+  U6503/Y (OAI222X1)                       0.33       3.66 r
+  P1_01_00_reg_reg[11]/D (DFFRX4)          0.00       3.66 r
+  data arrival time                                   3.66
 
-  clock i_clk (rise edge)                  4.00       4.00
-  clock network delay (ideal)              0.50       4.50
-  clock uncertainty                       -0.10       4.40
-  P2_03_01_reg_reg[7]/CK (DFFRX4)          0.00       4.40 r
-  library setup time                      -0.22       4.18
-  data required time                                  4.18
+  clock i_clk (rise edge)                  3.50       3.50
+  clock network delay (ideal)              0.50       4.00
+  clock uncertainty                       -0.10       3.90
+  P1_01_00_reg_reg[11]/CK (DFFRX4)         0.00       3.90 r
+  library setup time                      -0.24       3.66
+  data required time                                  3.66
   -----------------------------------------------------------
-  data required time                                  4.18
-  data arrival time                                  -4.18
+  data required time                                  3.66
+  data arrival time                                  -3.66
   -----------------------------------------------------------
   slack (MET)                                         0.00
 
 
-  Startpoint: weight_r_reg[7][3]
+  Startpoint: state_r_reg[1]
               (rising edge-triggered flip-flop clocked by i_clk)
-  Endpoint: P3_00_01_reg_reg[25]
+  Endpoint: o_out_data1[5]
+            (output port clocked by i_clk)
+  Path Group: i_clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  core               tsmc13_wl10           slow
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock i_clk (rise edge)                  0.00       0.00
+  clock network delay (ideal)              0.50       0.50
+  state_r_reg[1]/CK (DFFRHQX8)             0.00 #     0.50 r
+  state_r_reg[1]/Q (DFFRHQX8)              0.32       0.82 r
+  U6019/Y (INVX12)                         0.16       0.98 f
+  U6147/Y (AND4X6)                         0.28       1.26 f
+  U7222/Y (AOI22X2)                        0.32       1.58 r
+  U7097/Y (CLKMX2X4)                       0.24       1.82 r
+  U4353/Y (OAI211X2)                       0.15       1.98 f
+  U7331/Y (BUFX12)                         0.17       2.15 f
+  o_out_data1[5] (out)                     0.00       2.15 f
+  data arrival time                                   2.15
+
+  clock i_clk (rise edge)                  3.50       3.50
+  clock network delay (ideal)              0.50       4.00
+  clock uncertainty                       -0.10       3.90
+  output external delay                   -1.75       2.15
+  data required time                                  2.15
+  -----------------------------------------------------------
+  data required time                                  2.15
+  data arrival time                                  -2.15
+  -----------------------------------------------------------
+  slack (MET)                                         0.00
+
+
+  Startpoint: weight_r_reg[8][3]
+              (rising edge-triggered flip-flop clocked by i_clk)
+  Endpoint: P3_02_02_reg_reg[20]
             (rising edge-triggered flip-flop clocked by i_clk)
   Path Group: i_clk
   Path Type: max
@@ -175,89 +222,41 @@ Wire Load Model Mode: top
   --------------------------------------------------------------------------
   clock i_clk (rise edge)                                 0.00       0.00
   clock network delay (ideal)                             0.50       0.50
-  weight_r_reg[7][3]/CK (DFFRX4)                          0.00 #     0.50 r
-  weight_r_reg[7][3]/Q (DFFRX4)                           0.48       0.98 f
-  U6915/Y (BUFX20)                                        0.15       1.13 f
-  r1468/b[3] (core_DW_mult_tc_76)                         0.00       1.13 f
-  r1468/U290/Y (CLKINVX16)                                0.06       1.19 r
-  r1468/U289/Y (INVX20)                                   0.06       1.25 f
-  r1468/U348/Y (CLKXOR2X4)                                0.23       1.48 r
-  r1468/U269/Y (NAND2X6)                                  0.19       1.68 f
-  r1468/U379/Y (OAI22X2)                                  0.33       2.00 r
-  r1468/U354/Y (INVX3)                                    0.13       2.13 f
-  r1468/U134/S (CMPR42X2)                                 0.74       2.88 f
-  r1468/U378/Y (NOR2X6)                                   0.21       3.08 r
-  r1468/U389/Y (NOR2X6)                                   0.11       3.19 f
-  r1468/U425/Y (AOI21X4)                                  0.16       3.35 r
-  r1468/U452/Y (OAI21X4)                                  0.18       3.53 f
-  r1468/U418/Y (AOI21X4)                                  0.16       3.69 r
-  r1468/product[23] (core_DW_mult_tc_76)                  0.00       3.69 r
-  U6594/Y (AND2X8)                                        0.16       3.85 r
-  U6485/Y (AO21XL)                                        0.28       4.13 r
-  P3_00_01_reg_reg[25]/D (DFFRX1)                         0.00       4.13 r
-  data arrival time                                                  4.13
+  weight_r_reg[8][3]/CK (DFFRX4)                          0.00 #     0.50 r
+  weight_r_reg[8][3]/QN (DFFRX4)                          0.27       0.77 f
+  U6919/Y (INVX16)                                        0.12       0.90 r
+  r1461/b[3] (core_DW_mult_tc_52)                         0.00       0.90 r
+  r1461/U404/Y (CLKINVX8)                                 0.14       1.03 f
+  r1461/U403/Y (INVX20)                                   0.12       1.15 r
+  r1461/U410/Y (XNOR2X4)                                  0.13       1.28 r
+  r1461/U408/Y (AND2X8)                                   0.18       1.46 r
+  r1461/U283/Y (INVX20)                                   0.08       1.54 f
+  r1461/U345/Y (OAI22X4)                                  0.16       1.71 r
+  r1461/U429/CO (ADDHX4)                                  0.19       1.89 r
+  r1461/U513/S (ADDFHX4)                                  0.27       2.16 r
+  r1461/U535/S (ADDFHX4)                                  0.32       2.48 f
+  r1461/U468/Y (NOR2X8)                                   0.17       2.65 r
+  r1461/U533/Y (OAI21X4)                                  0.11       2.76 f
+  r1461/U504/Y (AOI21X4)                                  0.13       2.88 r
+  r1461/U366/Y (BUFX8)                                    0.15       3.03 r
+  r1461/U414/Y (NAND2X8)                                  0.09       3.12 f
+  r1461/U446/Y (AOI21X4)                                  0.13       3.26 r
+  r1461/U443/Y (XOR2X4)                                   0.16       3.41 r
+  r1461/product[20] (core_DW_mult_tc_52)                  0.00       3.41 r
+  U8151/Y (INVX8)                                         0.08       3.50 f
+  U8137/Y (OAI222X2)                                      0.21       3.71 r
+  P3_02_02_reg_reg[20]/D (DFFRHQX2)                       0.00       3.71 r
+  data arrival time                                                  3.71
 
-  clock i_clk (rise edge)                                 4.00       4.00
-  clock network delay (ideal)                             0.50       4.50
-  clock uncertainty                                      -0.10       4.40
-  P3_00_01_reg_reg[25]/CK (DFFRX1)                        0.00       4.40 r
-  library setup time                                     -0.27       4.13
-  data required time                                                 4.13
+  clock i_clk (rise edge)                                 3.50       3.50
+  clock network delay (ideal)                             0.50       4.00
+  clock uncertainty                                      -0.10       3.90
+  P3_02_02_reg_reg[20]/CK (DFFRHQX2)                      0.00       3.90 r
+  library setup time                                     -0.19       3.71
+  data required time                                                 3.71
   --------------------------------------------------------------------------
-  data required time                                                 4.13
-  data arrival time                                                 -4.13
-  --------------------------------------------------------------------------
-  slack (MET)                                                        0.00
-
-
-  Startpoint: weight_r_reg[5][2]
-              (rising edge-triggered flip-flop clocked by i_clk)
-  Endpoint: P2_01_02_reg_reg[23]
-            (rising edge-triggered flip-flop clocked by i_clk)
-  Path Group: i_clk
-  Path Type: max
-
-  Des/Clust/Port     Wire Load Model       Library
-  ------------------------------------------------
-  core               tsmc13_wl10           slow
-
-  Point                                                   Incr       Path
-  --------------------------------------------------------------------------
-  clock i_clk (rise edge)                                 0.00       0.00
-  clock network delay (ideal)                             0.50       0.50
-  weight_r_reg[5][2]/CK (DFFRX4)                          0.00 #     0.50 r
-  weight_r_reg[5][2]/Q (DFFRX4)                           0.66       1.16 f
-  r1459/b[2] (core_DW_mult_tc_55)                         0.00       1.16 f
-  r1459/U432/Y (CLKXOR2X4)                                0.36       1.51 r
-  r1459/U398/Y (CLKINVX12)                                0.14       1.65 f
-  r1459/U505/Y (NAND2X8)                                  0.21       1.86 r
-  r1459/U422/Y (OR2X4)                                    0.19       2.05 r
-  r1459/U282/Y (NAND2X6)                                  0.09       2.14 f
-  r1459/U399/Y (INVX4)                                    0.08       2.22 r
-  r1459/U466/S (ADDFHX4)                                  0.30       2.52 r
-  r1459/U481/S (ADDFHX4)                                  0.32       2.84 r
-  r1459/U379/Y (NOR2X8)                                   0.12       2.96 f
-  r1459/U397/Y (NOR2X8)                                   0.11       3.07 r
-  r1459/U301/Y (NAND2X4)                                  0.09       3.16 f
-  r1459/U486/Y (OAI21X4)                                  0.27       3.43 r
-  r1459/U295/Y (OAI2BB1X4)                                0.23       3.66 r
-  r1459/U346/Y (INVX6)                                    0.07       3.73 f
-  r1459/product[23] (core_DW_mult_tc_55)                  0.00       3.73 f
-  U6085/Y (NAND2X4)                                       0.09       3.82 r
-  U6916/Y (NAND2X6)                                       0.11       3.92 f
-  U6319/Y (AO21X2)                                        0.26       4.19 f
-  P2_01_02_reg_reg[23]/D (DFFRX1)                         0.00       4.19 f
-  data arrival time                                                  4.19
-
-  clock i_clk (rise edge)                                 4.00       4.00
-  clock network delay (ideal)                             0.50       4.50
-  clock uncertainty                                      -0.10       4.40
-  P2_01_02_reg_reg[23]/CK (DFFRX1)                        0.00       4.40 r
-  library setup time                                     -0.21       4.19
-  data required time                                                 4.19
-  --------------------------------------------------------------------------
-  data required time                                                 4.19
-  data arrival time                                                 -4.19
+  data required time                                                 3.71
+  data arrival time                                                 -3.71
   --------------------------------------------------------------------------
   slack (MET)                                                        0.00
 
